@@ -31,6 +31,7 @@ entry:
 		MOV 	CH,0
 		MOV 	DH,0
 		MOV 	CL,2
+readloop:
 		MOV		SI,0
 retry:
 		MOV 	AH,0x02
@@ -38,7 +39,7 @@ retry:
 		MOV 	BX,0
 		MOV 	DL,0x00
 		INT 	0x13
-		JNC		fin
+		JNC		next
 		ADD		SI,1
 		CMP		SI,5
 		JAE 	error
@@ -46,6 +47,23 @@ retry:
 		MOV		DL,0x00
 		INT		0x13
 		JMP		retry
+next:
+		MOV 	AX,ES
+		ADD		AX,0x0020
+		MOV		ES,AX
+		ADD 	CL,1
+		CMP 	CL,18
+		JBE 	readloop
+		MOV		CL,1
+		ADD		DH,1
+		CMP		DH,2
+		JB		readloop
+		MOV		DH,0
+		ADD		CH,1
+		CMP 	CH,10
+		JB		readloop
+		MOV		[0x0ff0],CH
+		JMP		0xc200
 fin:
 		HLT
 		JMP		fin
