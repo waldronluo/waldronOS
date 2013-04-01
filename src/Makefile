@@ -68,7 +68,16 @@ clean :
 	-$(DEL) bootpack.bim
 	-$(DEL) bootpack.hrb
 	-$(DEL) waldronos.sys
-
+gitclean:
+	git rm *.bin
+	git rm *.lst
+	git rm *.gas
+	git rm *.obj
+	git rm bootpack.nas
+	git rm bootpack.map
+	git rm bootpack.bim
+	git rm bootpack.hrb
+	git rm waldronos.sys
 src_only :
 	$(MAKE) clean
 	-$(DEL) waldronos.img
