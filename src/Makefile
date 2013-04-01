@@ -68,7 +68,7 @@ clean :
 	-$(DEL) bootpack.bim
 	-$(DEL) bootpack.hrb
 	-$(DEL) waldronos.sys
-gitclean:
+gitclean: 
 	git rm *.bin
 	git rm *.lst
 	git rm *.gas
