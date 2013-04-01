@@ -56,7 +56,7 @@ img :
 	$(MAKE) waldronos.img
 
 run :waldronos.img
-	qemu-system-i386 -fda waldronos.img
+	qemu-system-i386 -vga std -fda waldronos.img
 install :
 	$(MAKE) img
 	$(IMGTOL) w a: waldronos.img
