@@ -42,7 +42,7 @@ fin:
 		JMP		fin				
 msg:
 		DB		0x0a, 0x0a		
-		DB		"hello, world your father"
+		DB		"suzaku Hello. I'm a god."
 		DB		0x0a			
 		DB		0
 		RESB	0x7dfe-$		
