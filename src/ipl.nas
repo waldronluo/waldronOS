@@ -26,8 +26,22 @@ entry:
 		MOV		SS,AX
 		MOV		SP,0x7c00
 		MOV		DS,AX
-		MOV		ES,AX
-		MOV		SI,msg
+		MOV		AX,0x0820
+		MOV 	ES,AX
+		MOV 	CH,0
+		MOV 	DH,0
+		MOV 	CL,2
+		MOV 	AH,0x02
+		MOV 	AL,1
+		MOV 	BX,0
+		MOV 	DL,0x00
+		INT 	0x13
+		JC 		error
+fin:
+		HLT
+		JMP		fin
+error:
+		MOV 	SI,msg
 putloop:
 		MOV		AL,[SI]
 		ADD		SI,1			
@@ -37,12 +51,9 @@ putloop:
 		MOV		BX,15			
 		INT		0x10			
 		JMP		putloop
-fin:
-		HLT						
-		JMP		fin				
 msg:
 		DB		0x0a, 0x0a		
-		DB		"suzaku Hello. I'm a god."
+		DB		"Load ERROR."
 		DB		0x0a			
 		DB		0
 		RESB	0x7dfe-$		
