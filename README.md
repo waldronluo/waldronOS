@@ -9,3 +9,5 @@ waldronOS
 
 **第五天**
 感觉上字体库编译器是坏的，所以打算用python再写一个。扔到diy_tool下面。
+写好之后生成一个hankaku.h这样的东西来调用。因此不用extern char hankaku[4096]这样的东西了。
+但是最后发现。。。是因为extern没有引用进来发生的错误。不想搞了，就这样吧。

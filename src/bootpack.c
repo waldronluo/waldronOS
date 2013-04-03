@@ -1,6 +1,7 @@
 
 
-extern char hankaku[4096];
+//extern char hankaku[4096];
+#include "hankaku.h"
 static unsigned char table_rgb[16 * 3] = {
 		0x00,0x00,0x00,
 		0xff,0x00,0x00,
@@ -47,7 +48,7 @@ void HariMain(void)
 	
 	init_palette();
 	init_screen( binfo->vram , binfo->scrnx, binfo->scrny );
-	//putfont8( binfo->vram , binfo->scrnx , 40 , 40 , 12 , (char*)hankaku['A'*16] );
+	putfont8( binfo->vram , binfo->scrnx , 50 , 50 , 4 , hankaku+'A'*16 );
 	putfont8( binfo->vram , binfo->scrnx , 40 , 40 , 12 ,A );
 	for ( ;; )
 		io_hlt();
