@@ -1,5 +1,5 @@
 
-
+#include <stdio.h>
 //extern char hankaku[4096];
 #include "hankaku.h"
 static unsigned char table_rgb[16 * 3] = {
@@ -29,13 +29,12 @@ int io_load_eflags(void);
 void io_store_eflags( int eflags );
 void boxfill8(unsigned char* vram, int xsize, unsigned char c, int x0, int y0, int x1 , int y1 );
 void putfont8 ( char *vram , int xsize, int x , int y , char c , char *font );
+void putfonts8_asc ( char *vram , int xsize , int x , int y , char c , unsigned char *s );
 void init_palette(void);
 void set_palette(int start, int end, unsigned char* rgb);
 int  find_palette( int color );
 void write_mem8(int ,int );
 void init_screen( char* , int, int );
-static unsigned char A[16] = {
-0x00,0x18,0x18,0x18,0x18,0x24,0x24,0x24,0x24,0x24,0x7e,0x42,0x42,0xe7,0x00,0x00};
 struct BOOTINFO {
 	char cyls, leds, vmode, reserve;
 	short scrnx, scrny;
@@ -48,8 +47,12 @@ void HariMain(void)
 	
 	init_palette();
 	init_screen( binfo->vram , binfo->scrnx, binfo->scrny );
-	putfont8( binfo->vram , binfo->scrnx , 50 , 50 , 4 , hankaku+'A'*16 );
-	putfont8( binfo->vram , binfo->scrnx , 40 , 40 , 12 ,A );
+	char* s;
+//	putfont8( binfo->vram , binfo->scrnx , 50 , 50 , 4 , hankaku+'A'*16 );
+//	putfont8( binfo->vram , binfo->scrnx , 40 , 40 , 12 ,A );
+	putfonts8_asc( binfo->vram , binfo->scrnx , 8 , 8 , find_palette( 0x00ffffff ) , "ABC 123" );	
+	sprintf(s , "scrnx = %d" , binfo->scrnx );
+	putfonts8_asc ( binfo->vram , binfo->scrnx , 16 , 64 , find_palette( 0x00ffffff) , s );	
 	for ( ;; )
 		io_hlt();
 }
@@ -139,4 +142,11 @@ void putfont8 ( char *vram , int xsize, int x , int y , char c , char *font )
 		if ((d&0x01) != 0 ) { p[7] = c ; }
 	}
 	return ;
+}
+
+
+void putfonts8_asc ( char *vram , int xsize , int x , int y , char c , unsigned char *s )
+{
+	for ( ; *s != 0x00 ; s++, x+= 8 )
+		putfont8( vram , xsize , x, y, c,  hankaku + *s * 16 );	
 }
