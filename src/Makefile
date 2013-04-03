@@ -1,21 +1,27 @@
 TOOLPATH = ../z_tools/
 INCPATH  = ../z_tools/waldronos/
 
-MAKE     = $(TOOLPATH)make.exe -r
+MAKE     = make -r
 NASK     = $(TOOLPATH)nask.exe
 CC1      = $(TOOLPATH)cc1.exe -I$(INCPATH) -Os -Wall -quiet
 GAS2NASK = $(TOOLPATH)gas2nask.exe -a
 OBJ2BIM  = $(TOOLPATH)obj2bim.exe
 BIM2HRB  = $(TOOLPATH)bim2hrb.exe
+BIN2OBJ  = $(TOOLPATH)bin2obj.exe
 RULEFILE = $(TOOLPATH)haribote/haribote.rul
 EDIMG    = $(TOOLPATH)edimg.exe
 IMGTOL   = $(TOOLPATH)imgtol.com
+MAKEFONT = $(TOOLPATH)makefont.exe
 COPY     = cp
 DEL      = rm -rf
 
 default :
 	$(MAKE) img
 
+hankaku.bin: hankaku.txt  Makefile
+	$(MAKEFONT) hankaku.txt hankaku.bin
+hankaku.obj: hankaku.bin Makefile
+	$(BIN2OBJ) hankaku.bin hankaku.obj  _hankaku
 
 ipl10.bin : ipl10.nas Makefile
 	$(NASK) ipl10.nas ipl10.bin ipl10.lst
@@ -35,7 +41,7 @@ naskfunc.obj: naskfunc.nas Makefile
 bootpack.obj : bootpack.nas Makefile
 	$(NASK) bootpack.nas bootpack.obj bootpack.lst
 
-bootpack.bim : bootpack.obj naskfunc.obj Makefile
+bootpack.bim : bootpack.obj naskfunc.obj hankaku.obj Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:bootpack.bim stack:3136k map:bootpack.map naskfunc.obj bootpack.obj
 # 3MB+64KB=3136KB
 
@@ -51,7 +57,7 @@ waldronos.img : ipl10.bin waldronos.sys Makefile
 		copy from:waldronos.sys to:@: \
 		imgout:waldronos.img
 
-img :
+img : 
 	$(MAKE) waldronos.img
 
 run :waldronos.img

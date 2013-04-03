@@ -1,4 +1,6 @@
 
+
+extern char hankaku[4096];
 static unsigned char table_rgb[16 * 3] = {
 		0x00,0x00,0x00,
 		0xff,0x00,0x00,
@@ -19,9 +21,6 @@ static unsigned char table_rgb[16 * 3] = {
 		0x00,0x00,0x00,
 };
 
-
-
-
 void io_hlt(void);
 void io_cli(void);
 void io_out8 ( int port , int data );
@@ -41,37 +40,21 @@ void init_palette(void);
 void set_palette(int start, int end, unsigned char* rgb);
 int  find_palette( int color );
 void write_mem8(int ,int );
+void init_screen( char* , int, int );
+
+struct BOOTINFO {
+	char cyls, leds, vmode, reserve;
+	short scrnx, scrny;
+ 	char* vram;
+};
 
 void HariMain(void)
 {
-	int i;
-	int xsize=320,ysize=200;
-	char* vram = 0xa0000;
+	struct BOOTINFO* binfo = (struct BOOTINFO *)0x0ff0;
+	
 	init_palette();
-	for ( i = 0 ; i<=0xffff ; i++ )
-	{
-		vram[i] = i&0x0f;
-	}
-//	for ( i=0xa0000 ; i<0xaffff ; i++ )
-//	{
-//		write_mem8 ( i , 15 );
-//	}
-	boxfill8 ( vram, 320 , find_palette( 0x00008484)  , 0		,0			,xsize-1	,ysize-29 );	
-	boxfill8 ( vram, 320 , find_palette( 0x00c6c6c6)  , 0		,ysize-28	,xsize-1	,ysize-28 );	
-	boxfill8 ( vram, 320 , find_palette( 0x00ffffff)  , 0		,ysize-27	,xsize-1	,ysize-27 );	
-	boxfill8 ( vram, 320 , find_palette( 0x00c6c6c6)  , 0		,ysize-26	,xsize-1	,ysize-1  );	
+	init_screen( binfo->vram , binfo->scrnx, binfo->scrny );
 	
-	boxfill8 ( vram, 320 , find_palette( 0x00ffffff)  , 3		,ysize-24	,59			,ysize-24 );	
-	boxfill8 ( vram, 320 , find_palette( 0x00ffffff)  , 2		,ysize-24	,2			,ysize-4  );	
-	boxfill8 ( vram, 320 , find_palette( 0x00848484)  , 3		,ysize-4	,59			,ysize-4  );	
-	boxfill8 ( vram, 320 , find_palette( 0x00848484)  , 59		,ysize-23	,59			,ysize-5  );	
-	boxfill8 ( vram, 320 , find_palette( 0x00000000)  , 2		,ysize-3	,59			,ysize-3  );	
-	boxfill8 ( vram, 320 , find_palette( 0x00000000)  , 60		,ysize-24	,60			,ysize-3  );	
-	
-	boxfill8 ( vram, 320 , find_palette( 0x00848484)  , xsize-47,ysize-24	,xsize-4	,ysize-24 );	
-	boxfill8 ( vram, 320 , find_palette( 0x00848484)  , xsize-47,ysize-23	,xsize-47	,ysize-4  );	
-	boxfill8 ( vram, 320 , find_palette( 0x00ffffff)  , xsize-47,ysize-3	,xsize-4	,ysize-3  );	
-	boxfill8 ( vram, 320 , find_palette( 0x00ffffff)  , xsize-3	,ysize-24	,xsize-3	,ysize-3  );	
 	for ( ;; )
 		io_hlt();
 }
@@ -97,6 +80,27 @@ void set_palette( int start , int end , unsigned char* rgb )
 	}	
 	io_store_eflags(eflags);
 	return ;
+}
+
+void init_screen ( char* vram , int xsize , int ysize )
+{
+
+	boxfill8 ( vram, 320 , find_palette( 0x00008484)  , 0		,0			,xsize-1	,ysize-29 );	
+	boxfill8 ( vram, 320 , find_palette( 0x00c6c6c6)  , 0		,ysize-28	,xsize-1	,ysize-28 );	
+	boxfill8 ( vram, 320 , find_palette( 0x00ffffff)  , 0		,ysize-27	,xsize-1	,ysize-27 );	
+	boxfill8 ( vram, 320 , find_palette( 0x00c6c6c6)  , 0		,ysize-26	,xsize-1	,ysize-1  );	
+	
+	boxfill8 ( vram, 320 , find_palette( 0x00ffffff)  , 3		,ysize-24	,59			,ysize-24 );	
+	boxfill8 ( vram, 320 , find_palette( 0x00ffffff)  , 2		,ysize-24	,2			,ysize-4  );	
+	boxfill8 ( vram, 320 , find_palette( 0x00848484)  , 3		,ysize-4	,59			,ysize-4  );	
+	boxfill8 ( vram, 320 , find_palette( 0x00848484)  , 59		,ysize-23	,59			,ysize-5  );	
+	boxfill8 ( vram, 320 , find_palette( 0x00000000)  , 2		,ysize-3	,59			,ysize-3  );	
+	boxfill8 ( vram, 320 , find_palette( 0x00000000)  , 60		,ysize-24	,60			,ysize-3  );	
+	
+	boxfill8 ( vram, 320 , find_palette( 0x00848484)  , xsize-47,ysize-24	,xsize-4	,ysize-24 );	
+	boxfill8 ( vram, 320 , find_palette( 0x00848484)  , xsize-47,ysize-23	,xsize-47	,ysize-4  );	
+	boxfill8 ( vram, 320 , find_palette( 0x00ffffff)  , xsize-47,ysize-3	,xsize-4	,ysize-3  );	
+	boxfill8 ( vram, 320 , find_palette( 0x00ffffff)  , xsize-3	,ysize-24	,xsize-3	,ysize-3  );	
 }
 
 int find_palette( int color )
