@@ -1,6 +1,6 @@
 TOOLPATH = ../z_tools/
 INCPATH  = ../z_tools/waldronos/
-
+DIYPATH  = ../diy_tools/
 MAKE     = make -r
 NASK     = $(TOOLPATH)nask.exe
 CC1      = $(TOOLPATH)cc1.exe -I$(INCPATH) -Os -Wall -quiet
@@ -18,10 +18,8 @@ DEL      = rm -rf
 default :
 	$(MAKE) img
 
-hankaku.bin: hankaku.txt  Makefile
-	$(MAKEFONT) hankaku.txt hankaku.bin
-hankaku.obj: hankaku.bin Makefile
-	$(BIN2OBJ) hankaku.bin hankaku.obj  _hankaku
+hankaku.h: hankaku.txt Makefile
+	python $(DIYPATH)fontmaker.py 
 
 ipl10.bin : ipl10.nas Makefile
 	$(NASK) ipl10.nas ipl10.bin ipl10.lst
@@ -29,8 +27,8 @@ ipl10.bin : ipl10.nas Makefile
 asmhead.bin : asmhead.nas Makefile
 	$(NASK) asmhead.nas asmhead.bin asmhead.lst
 
-bootpack.gas : bootpack.c Makefile
-	$(CC1) -o bootpack.gas bootpack.c
+bootpack.gas : bootpack.c hankaku.h Makefile
+	$(CC1) -o bootpack.gas hankaku.h bootpack.c
 
 bootpack.nas : bootpack.gas Makefile
 	$(GAS2NASK) bootpack.gas bootpack.nas
@@ -41,7 +39,7 @@ naskfunc.obj: naskfunc.nas Makefile
 bootpack.obj : bootpack.nas Makefile
 	$(NASK) bootpack.nas bootpack.obj bootpack.lst
 
-bootpack.bim : bootpack.obj naskfunc.obj hankaku.obj Makefile
+bootpack.bim : bootpack.obj naskfunc.obj Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:bootpack.bim stack:3136k map:bootpack.map naskfunc.obj bootpack.obj
 # 3MB+64KB=3136KB
 
@@ -76,6 +74,8 @@ clean :
 	-$(DEL) bootpack.bim
 	-$(DEL) bootpack.hrb
 	-$(DEL) waldronos.sys
+	-$(DEL) waldronos.img
+	-$(DEL) hankaku.h
 gitclean: 
 	git rm *.bin
 	git rm *.lst
@@ -86,6 +86,8 @@ gitclean:
 	git rm bootpack.bim
 	git rm bootpack.hrb
 	git rm waldronos.sys
+	git rm waldronos.img
+	git rm hankaku.h
 src_only :
 	$(MAKE) clean
 	-$(DEL) waldronos.img

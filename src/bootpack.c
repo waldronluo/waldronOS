@@ -33,8 +33,8 @@ void set_palette(int start, int end, unsigned char* rgb);
 int  find_palette( int color );
 void write_mem8(int ,int );
 void init_screen( char* , int, int );
-//static unsigned char A[16] = {
-//0x00,0x18,0x18,0x18,0x18,0x24,0x24,0x24,0x24,0x24,0x7e,0x42,0x42,0xe7,0x00,0x00};
+static unsigned char A[16] = {
+0x00,0x18,0x18,0x18,0x18,0x24,0x24,0x24,0x24,0x24,0x7e,0x42,0x42,0xe7,0x00,0x00};
 struct BOOTINFO {
 	char cyls, leds, vmode, reserve;
 	short scrnx, scrny;
@@ -47,7 +47,8 @@ void HariMain(void)
 	
 	init_palette();
 	init_screen( binfo->vram , binfo->scrnx, binfo->scrny );
-	putfont8( binfo->vram , binfo->scrnx , 40 , 40 , 12 , hankaku );
+	//putfont8( binfo->vram , binfo->scrnx , 40 , 40 , 12 , (char*)hankaku['A'*16] );
+	putfont8( binfo->vram , binfo->scrnx , 40 , 40 , 12 ,A );
 	for ( ;; )
 		io_hlt();
 }

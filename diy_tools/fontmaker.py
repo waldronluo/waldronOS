@@ -33,8 +33,8 @@ def put16 ( line ):
 
 
 if __name__ == '__main__':
-	fi = file ( 'hankaku.txt' )
-	fo = file ( 'hankaku.h' , 'w' )
+	fi = file ( '../src/hankaku.txt' )
+	fo = file ( '../src/hankaku.h' , 'w' )
 	fo.write( 'char hankaku[4096] = { ')
 	while True: 
 		line = fi.readline()
