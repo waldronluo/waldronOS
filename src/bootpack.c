@@ -22,6 +22,27 @@ static unsigned char table_rgb[16 * 3] = {
 		0x00,0x00,0x00,
 };
 
+static char cursor[17][17] = {
+	"**************..",
+	"*OOOOOOOOOOO*...",
+	"*OOOOOOOOOO*....",
+	"*OOOOOOOOO*.....",
+	"*OOOOOOOO*......",
+	"*OOOOOOO*.......",
+	"*OOOOOO*........",
+	"*OOOOOOO*.......",
+	"*OOOOOOOO*......",
+	"*OOOO*OOOO*.....",
+	"*OOO*.*OOOO*....",
+	"*OO*...*OOOO*...",
+	"*O*.....*OOOO*..",
+	"**.......*OOOO*.",
+	"*.........*OOOO*",
+	"...........*OOOO",
+	"****************"
+};
+
+
 void io_hlt(void);
 void io_cli(void);
 void io_out8 ( int port , int data );
@@ -30,11 +51,14 @@ void io_store_eflags( int eflags );
 void boxfill8(unsigned char* vram, int xsize, unsigned char c, int x0, int y0, int x1 , int y1 );
 void putfont8 ( char *vram , int xsize, int x , int y , char c , char *font );
 void putfonts8_asc ( char *vram , int xsize , int x , int y , char c , unsigned char *s );
+void putblock8_8( char* vram , int vxsize , int pxsize , int pysize , int px0 , int py0 , char* buf , int bxsize );
 void init_palette(void);
 void set_palette(int start, int end, unsigned char* rgb);
 int  find_palette( int color );
 void write_mem8(int ,int );
 void init_screen( char* , int, int );
+void init_mouse_curosr8( char* mouse , char bc );
+
 struct BOOTINFO {
 	char cyls, leds, vmode, reserve;
 	short scrnx, scrny;
@@ -44,7 +68,7 @@ struct BOOTINFO {
 void HariMain(void)
 {
 	struct BOOTINFO* binfo = (struct BOOTINFO *)0x0ff0;
-	
+	char mcursor[17*17];	
 	init_palette();
 	init_screen( binfo->vram , binfo->scrnx, binfo->scrny );
 	char* s;
@@ -53,6 +77,8 @@ void HariMain(void)
 	putfonts8_asc( binfo->vram , binfo->scrnx , 8 , 8 , find_palette( 0x00ffffff ) , "ABC 123" );	
 	sprintf(s , "scrnx = %d" , binfo->scrnx );
 	putfonts8_asc ( binfo->vram , binfo->scrnx , 16 , 64 , find_palette( 0x00ffffff) , s );	
+	init_mouse_curosr8 ( mcursor , find_palette(0x00008484) );
+	putblock8_8 ( binfo->vram , binfo->scrnx , 16 , 16 , 160 , 100 , mcursor , 16 );
 	for ( ;; )
 		io_hlt();
 }
@@ -99,6 +125,23 @@ void init_screen ( char* vram , int xsize , int ysize )
 	boxfill8 ( vram, 320 , find_palette( 0x00848484)  , xsize-47,ysize-23	,xsize-47	,ysize-4  );	
 	boxfill8 ( vram, 320 , find_palette( 0x00ffffff)  , xsize-47,ysize-3	,xsize-4	,ysize-3  );	
 	boxfill8 ( vram, 320 , find_palette( 0x00ffffff)  , xsize-3	,ysize-24	,xsize-3	,ysize-3  );	
+}
+
+void init_mouse_curosr8( char* mouse , char bc )
+{
+	int x,y;
+	for ( y=0 ; y<16 ; y++ )
+	{
+		for ( x=0 ; x<16 ; x++ )
+		{
+			if ( cursor[y][x] == '*' ) 
+				mouse[y*16 + x] = find_palette(0x00000000);
+			if ( cursor[y][x] == 'O' )
+				mouse[y*16 + x] = find_palette(0x00ffffff);
+			if ( cursor[y][x] == '.' )
+				mouse[y*16 + x] = bc;	
+		}
+	}
 }
 
 int find_palette( int color )
@@ -149,4 +192,12 @@ void putfonts8_asc ( char *vram , int xsize , int x , int y , char c , unsigned 
 {
 	for ( ; *s != 0x00 ; s++, x+= 8 )
 		putfont8( vram , xsize , x, y, c,  hankaku + *s * 16 );	
+}
+
+void putblock8_8( char* vram , int vxsize , int pxsize , int pysize , int px0 , int py0 , char* buf , int bxsize )
+{
+	int x,y;
+	for ( y=0 ; y<pysize ; y++ )
+		for ( x=0 ; x<pxsize ; x++ )
+			vram [ (py0 + y ) * vxsize + ( px0 + x ) ] = buf[y * bxsize + x ];
 }
