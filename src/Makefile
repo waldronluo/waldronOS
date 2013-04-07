@@ -1,3 +1,5 @@
+OBJS_BOOTPACK = bootpack.obj naskfunc.obj mmm.obj
+
 TOOLPATH = ../z_tools/
 INCPATH  = ../z_tools/waldronos/
 DIYPATH  = ../diy_tools/
@@ -15,8 +17,8 @@ MAKEFONT = $(TOOLPATH)makefont.exe
 COPY     = cp
 DEL      = rm -rf
 
-default :
-	$(MAKE) img
+default : run
+#	$(MAKE) img
 
 hankaku.h: hankaku.txt Makefile
 	python $(DIYPATH)fontmaker.py 
@@ -27,7 +29,17 @@ ipl10.bin : ipl10.nas Makefile
 asmhead.bin : asmhead.nas Makefile
 	$(NASK) asmhead.nas asmhead.bin asmhead.lst
 
-bootpack.gas : bootpack.c hankaku.h Makefile
+
+%.gas : %.c Makefile
+	$(CC1) -o $*.gas $*.c 
+
+%.nas : %.gas Makefile
+	$(GAS2NASK) $*.gas $*.nas
+
+%.obj : %.nas Makefile
+	$(NASK) $*.nas $*.obj $*.lst
+
+bootpack.gas : bootpack.c hankaku.h Makefile 
 	$(CC1) -o bootpack.gas hankaku.h bootpack.c
 
 bootpack.nas : bootpack.gas Makefile
@@ -39,8 +51,8 @@ naskfunc.obj: naskfunc.nas Makefile
 bootpack.obj : bootpack.nas Makefile
 	$(NASK) bootpack.nas bootpack.obj bootpack.lst
 
-bootpack.bim : bootpack.obj naskfunc.obj Makefile
-	$(OBJ2BIM) @$(RULEFILE) out:bootpack.bim stack:3136k map:bootpack.map naskfunc.obj bootpack.obj
+bootpack.bim : $(OBJS_BOOTPACK)  Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:bootpack.bim stack:3136k map:bootpack.map $(OBJS_BOOTPACK) 
 # 3MB+64KB=3136KB
 
 bootpack.hrb : bootpack.bim Makefile

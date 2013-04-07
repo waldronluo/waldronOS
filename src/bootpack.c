@@ -42,7 +42,7 @@ static char cursor[17][17] = {
 	"****************"
 };
 
-
+int fuck();
 void io_hlt(void);
 void io_cli(void);
 void io_out8 ( int port , int data );
@@ -76,6 +76,7 @@ void HariMain(void)
 //	putfont8( binfo->vram , binfo->scrnx , 40 , 40 , 12 ,A );
 	putfonts8_asc( binfo->vram , binfo->scrnx , 8 , 8 , find_palette( 0x00ffffff ) , "ABC 123" );	
 	sprintf(s , "scrnx = %d" , binfo->scrnx );
+	sprintf(s , "fxxk = %d" , fuck() );
 	putfonts8_asc ( binfo->vram , binfo->scrnx , 16 , 64 , find_palette( 0x00ffffff) , s );	
 	init_mouse_curosr8 ( mcursor , find_palette(0x00008484) );
 	putblock8_8 ( binfo->vram , binfo->scrnx , 16 , 16 , 160 , 100 , mcursor , 16 );
