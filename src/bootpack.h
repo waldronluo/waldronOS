@@ -1,7 +1,4 @@
 
-#include <stdio.h>
-//extern char hankaku[4096];
-#include "hankaku.h"
 static unsigned char table_rgb[16 * 3] = {
 		0x00,0x00,0x00,
 		0xff,0x00,0x00,
@@ -37,8 +34,8 @@ static char cursor[17][17] = {
 	"*OO*...*OOOO*...",
 	"*O*.....*OOOO*..",
 	"**.......*OOOO*.",
-	"*.........*OOOO*",
-	"...........*OOOO",
+	"..........*OOOO*",
+	"...........*****",
 	"****************"
 };
 

@@ -1,4 +1,4 @@
-OBJS_BOOTPACK = bootpack.obj naskfunc.obj mmm.obj
+OBJS_BOOTPACK = bootpack.obj graphic.obj naskfunc.obj hankaku.obj
 
 TOOLPATH = ../z_tools/
 INCPATH  = ../z_tools/waldronos/
@@ -20,7 +20,7 @@ DEL      = rm -rf
 default : run
 #	$(MAKE) img
 
-hankaku.h: hankaku.txt Makefile
+hankaku.c: hankaku.txt Makefile
 	python $(DIYPATH)fontmaker.py 
 
 ipl10.bin : ipl10.nas Makefile
@@ -39,8 +39,8 @@ asmhead.bin : asmhead.nas Makefile
 %.obj : %.nas Makefile
 	$(NASK) $*.nas $*.obj $*.lst
 
-bootpack.gas : bootpack.c hankaku.h Makefile 
-	$(CC1) -o bootpack.gas hankaku.h bootpack.c
+bootpack.gas : bootpack.c hankaku.c Makefile 
+	$(CC1) -o bootpack.gas hankaku.c bootpack.c
 
 bootpack.nas : bootpack.gas Makefile
 	$(GAS2NASK) bootpack.gas bootpack.nas
@@ -87,7 +87,7 @@ clean :
 	-$(DEL) bootpack.hrb
 	-$(DEL) waldronos.sys
 	-$(DEL) waldronos.img
-	-$(DEL) hankaku.h
+	-$(DEL) hankaku.c
 gitclean: 
 	git rm *.bin
 	git rm *.lst
@@ -99,7 +99,7 @@ gitclean:
 	git rm bootpack.hrb
 	git rm waldronos.sys
 	git rm waldronos.img
-	git rm hankaku.h
+	git rm hankaku.c
 src_only :
 	$(MAKE) clean
 	-$(DEL) waldronos.img
