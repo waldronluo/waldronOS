@@ -24,12 +24,13 @@ void init_pic (void)
 void inthandler21 ( int* esp )
 {
 	struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
-	init_screen( binfo->vram , binfo->scrnx , binfo->scrny);
-	boxfill8(binfo->vram , binfo->scrnx , find_palette( 0x00000000 ) , 0 , 0 , 32*8-1 , 15 );
-	putfonts8_asc ( binfo->vram, binfo->scrnx, 0, 0, find_palette(0x00ffffff), "INT 21 (IRQ-1):PS/2 keyboard");
-	for(;;){
-		io_hlt();
-	}
+	unsigned char data, s[4];
+	io_out8( PIC0_OCW2, 0x61 );
+	data = io_in8 ( PORT_KEYDAT );
+	sprintf( s , "%02X", data );
+	boxfill8(binfo->vram , binfo->scrnx , find_palette( 0x00008484 ) , 0 , 0 , 15 , 15 );
+	putfonts8_asc ( binfo->vram, binfo->scrnx, 0, 0, find_palette(0x00ffffff), s);
+	return ;
 }
 
 void inthandler2c ( int* esp )
@@ -38,9 +39,7 @@ void inthandler2c ( int* esp )
 	init_screen( binfo->vram , binfo->scrnx , binfo->scrny);
 	boxfill8(binfo->vram , binfo->scrnx , find_palette( 0x00000000 ) , 0 , 0 , 32*8-1 , 15 );
 	putfonts8_asc ( binfo->vram, binfo->scrnx, 0, 0, find_palette(0x00ffffff), "INT 2C (IRQ-12):PS/2 keyboard");
-	for(;;){
-		io_hlt();
-	}
+	return;
 }
 
 void inthandler27 ( int* esp )
