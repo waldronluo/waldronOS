@@ -1,5 +1,5 @@
 /*graphic.h*/
-static unsigned char table_rgb[16 * 3] = {
+static unsigned char table_rgb[17 * 3] = {
 		0x00,0x00,0x00,
 		0xff,0x00,0x00,
 		0x00,0xff,0x00,
@@ -39,11 +39,6 @@ static char cursor[17][17] = {
 	"****************"
 };
 
-void io_hlt(void);
-void io_cli(void);
-void io_out8 ( int port , int data );
-int io_load_eflags(void);
-void io_store_eflags( int eflags );
 void boxfill8(unsigned char* vram, int xsize, unsigned char c, int x0, int y0, int x1 , int y1 );
 void putfont8 ( char *vram , int xsize, int x , int y , char c , char *font );
 void putfonts8_asc ( char *vram , int xsize , int x , int y , char c , unsigned char *s );
@@ -55,11 +50,13 @@ void write_mem8(int ,int );
 void init_screen( char* , int, int );
 void init_mouse_curosr8( char* mouse , char bc );
 
+/* asmhead.nas*/
 struct BOOTINFO {
 	char cyls, leds, vmode, reserve;
 	short scrnx, scrny;
  	char* vram;
 };
+#define ADR_BOOTINFO 0x00000ff0
 /*dsctbl.c*/
 #define ADR_IDT 0x0026f800
 #define LIMIT_IDT 0x000007ff
@@ -68,7 +65,8 @@ struct BOOTINFO {
 #define ADR_BOTPAK 0x00280000
 #define LIMIT_BOTPAK 0x0007ffff
 #define AR_DATA32_RW 0x4092
-#define AR_CODE32_ER
+#define AR_CODE32_ER 0x409a
+#define AR_INTGATE32 0x008e
 
 struct SEGMENT_DESCRIPTOR {
 	short limit_low , base_low;
@@ -85,5 +83,33 @@ struct GATE_DESCRIPTOR {
 void init_gdtidt(void);
 void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
 void set_gatedesc(struct GATE_DESCRIPTOR* gd , int offset, int selector, int ar);
-//void load_gdtr(int limit , int addr);
-//void load_idtr(int limit , int addr);
+
+/*naskfunc.nas*/
+void load_gdtr(int limit , int addr);
+void load_idtr(int limit , int addr);
+void io_hlt(void);
+void io_cli(void);
+void io_out8 ( int port , int data );
+int io_load_eflags(void);
+void io_store_eflags( int eflags );
+void asm_inthandler21(void);
+void asm_inthandler27(void);
+void asm_inthandler2c(void);
+
+/*int.c*/
+#define PIC0_ICW1 0x0020
+#define PIC0_OCW2 0x0020
+#define PIC0_IMR 0x0021
+#define PIC0_ICW2 0x0021
+#define PIC0_ICW3 0x0021
+#define PIC0_ICW4 0x0021
+#define PIC1_ICW1 0x00a0
+#define PIC1_OCW2 0x00a0
+#define PIC1_IMR 0x00a1
+#define PIC1_ICW2 0x00a1
+#define PIC1_ICW3 0x00a1
+#define PIC1_ICW4 0x00a1
+void init_pic(void);
+void inthandler21 ( int* esp );
+void inthandler27 ( int* esp );
+void inthandler2c ( int* esp );
