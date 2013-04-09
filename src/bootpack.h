@@ -1,4 +1,4 @@
-
+/*graphic.h*/
 static unsigned char table_rgb[16 * 3] = {
 		0x00,0x00,0x00,
 		0xff,0x00,0x00,
@@ -39,7 +39,6 @@ static char cursor[17][17] = {
 	"****************"
 };
 
-int fuck();
 void io_hlt(void);
 void io_cli(void);
 void io_out8 ( int port , int data );
@@ -61,4 +60,30 @@ struct BOOTINFO {
 	short scrnx, scrny;
  	char* vram;
 };
+/*dsctbl.c*/
+#define ADR_IDT 0x0026f800
+#define LIMIT_IDT 0x000007ff
+#define ADR_GDT 0x00270000
+#define LIMIT_GDT 0x0000ffff
+#define ADR_BOTPAK 0x00280000
+#define LIMIT_BOTPAK 0x0007ffff
+#define AR_DATA32_RW 0x4092
+#define AR_CODE32_ER
 
+struct SEGMENT_DESCRIPTOR {
+	short limit_low , selector;
+	char base_mid, access_right;
+	char limit_high, base_high;
+};
+
+struct GATE_DESCRIPTOR {
+	short offset_low , selector;
+	char dw_count, access_right;
+	char offset_high;
+};
+
+void init_gdtidt(void);
+void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
+void set_gatedesc(struct GATE_DESCRIPTOR* gd , int offset, int selector, int ar);
+void load_gdtr(int limit , int addr);
+void load_idtr(int limit , int addr);
