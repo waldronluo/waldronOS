@@ -5,6 +5,7 @@ void HariMain(void)
 {
 	struct BOOTINFO* binfo = (struct BOOTINFO *)0x0ff0;
 	char mcursor[17*17];	
+	init_gdtidt();
 	init_palette();
 	init_screen( binfo->vram , binfo->scrnx, binfo->scrny );
 	char* s;

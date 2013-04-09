@@ -1,4 +1,4 @@
-OBJS_BOOTPACK = bootpack.obj graphic.obj naskfunc.obj hankaku.obj
+OBJS_BOOTPACK = bootpack.obj graphic.obj naskfunc.obj dsctbl.obj hankaku.obj
 
 TOOLPATH = ../z_tools/
 INCPATH  = ../z_tools/waldronos/
