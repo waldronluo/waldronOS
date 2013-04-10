@@ -1,5 +1,5 @@
 #include "bootpack.h"
-
+extern struct Queue8 keyinfo;
 void init_pic (void)
 {
 	io_out8(PIC0_IMR , 0xff );
@@ -27,9 +27,10 @@ void inthandler21 ( int* esp )
 	unsigned char data, s[4];
 	io_out8( PIC0_OCW2, 0x61 );
 	data = io_in8 ( PORT_KEYDAT );
-	sprintf( s , "%02X", data );
-	boxfill8(binfo->vram , binfo->scrnx , find_palette( 0x00008484 ) , 0 , 0 , 15 , 15 );
-	putfonts8_asc ( binfo->vram, binfo->scrnx, 0, 0, find_palette(0x00ffffff), s);
+//	sprintf( s , "%02X", data );
+//	boxfill8(binfo->vram , binfo->scrnx , find_palette( 0x00008484 ) , 0 , 0 , 15 , 15 );
+//	putfonts8_asc ( binfo->vram, binfo->scrnx, 0, 0, find_palette(0x00ffffff), s);
+	queue8_put( &keyinfo , data );	
 	return ;
 }
 

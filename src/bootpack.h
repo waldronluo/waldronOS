@@ -1,43 +1,5 @@
 /*graphic.h*/
-static unsigned char table_rgb[17 * 3] = {
-		0x00,0x00,0x00,
-		0xff,0x00,0x00,
-		0x00,0xff,0x00,
-		0xff,0xff,0x00,
-		0x00,0x00,0xff,
-		0xff,0x00,0xff,
-		0x00,0xff,0xff,
-		0xff,0xff,0xff,
-		0xc6,0xc6,0xc6,
-		0x84,0x00,0x00,
-		0x00,0x84,0x00,
-		0x84,0x84,0x00,
-		0x00,0x00,0x84,
-		0x84,0x00,0x84,
-		0x00,0x84,0x84,
-		0x84,0x84,0x84,
-		0x00,0x00,0x00,
-};
 
-static char cursor[17][17] = {
-	"**************..",
-	"*OOOOOOOOOOO*...",
-	"*OOOOOOOOOO*....",
-	"*OOOOOOOOO*.....",
-	"*OOOOOOOO*......",
-	"*OOOOOOO*.......",
-	"*OOOOOO*........",
-	"*OOOOOOO*.......",
-	"*OOOOOOOO*......",
-	"*OOOO*OOOO*.....",
-	"*OOO*.*OOOO*....",
-	"*OO*...*OOOO*...",
-	"*O*.....*OOOO*..",
-	"**.......*OOOO*.",
-	"..........*OOOO*",
-	"...........*****",
-	"****************"
-};
 
 void boxfill8(unsigned char* vram, int xsize, unsigned char c, int x0, int y0, int x1 , int y1 );
 void putfont8 ( char *vram , int xsize, int x , int y , char c , char *font );
@@ -115,3 +77,28 @@ void init_pic(void);
 void inthandler21 ( int* esp );
 void inthandler27 ( int* esp );
 void inthandler2c ( int* esp );
+
+/*queue.c*/
+#define FLAGS_OVERRUN 0x0001
+struct Queue8 {
+	unsigned char* data;
+	int front, rear, size, flags;
+	/*
+	front: 	front of the queue | rear: rear of the queue |
+	size: size of the queue
+	flag: 	flag of overflow 
+	In my structure, the there's always a free position that can't be used.
+	It's unacceptable in early Computer world but not now so...
+	Just do  it.
+	*/
+};
+void queue8_init ( struct Queue8* queue , int size , unsigned char* data );
+int queue8_put ( struct Queue8* queue, unsigned char data );
+int queue8_get ( struct Queue8* queue );
+int queue8_status ( struct Queue8* queue );
+int queue8_free ( struct Queue8* queue );
+int isOverRun ( struct Queue8* queue );
+/*
+	status: how much data? 
+	free: 	size - statu
+*/
