@@ -1,6 +1,4 @@
 /*graphic.h*/
-
-
 void boxfill8(unsigned char* vram, int xsize, unsigned char c, int x0, int y0, int x1 , int y1 );
 void putfont8 ( char *vram , int xsize, int x , int y , char c , char *font );
 void putfonts8_asc ( char *vram , int xsize , int x , int y , char c , unsigned char *s );
@@ -19,6 +17,7 @@ struct BOOTINFO {
  	char* vram;
 };
 #define ADR_BOOTINFO 0x00000ff0
+
 /*dsctbl.c*/
 #define ADR_IDT 0x0026f800
 #define LIMIT_IDT 0x000007ff
@@ -102,3 +101,18 @@ int isOverRun ( struct Queue8* queue );
 	status: how much data? 
 	free: 	size - statu
 */
+
+/*keyboard.c*/
+#define PORT_KEYDAT 0x0060
+#define PORT_KEYSTA 0x0064
+#define PORT_KEYCMD 0x0064
+#define KEYSTA_SEND_NOTREADY 0x02
+#define KEYCMD_WRITE_MODE 0x60
+#define KBC_MODE 0x47
+void init_keyboard(void);
+void wait_KBC_sendready(void);
+
+/*mouse.c*/
+#define KEYCMD_SENDTO_MOUSE 0xd4
+#define MOUSECMD_ENABLE 0xf4
+void enable_mouse(void);
