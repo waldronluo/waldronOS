@@ -9,7 +9,7 @@ void HariMain(void)
 	struct BOOTINFO* binfo = (struct BOOTINFO *)0x0ff0;
 	char keybuf[32], mousebuf[128], s[40], mcursor[17*17];	
 	unsigned char i;
-
+	int mx,my;
 	init_gdtidt();
 	init_pic();
 	io_sti();
@@ -23,9 +23,13 @@ void HariMain(void)
 	io_out8(PIC1_IMR, 0xef);
 
 	init_keyboard();
-	
+	/* Init mouse  */	
 	enable_mouse();
 	init_mouse(&mdec);	
+	mx = ( binfo->scrnx - 16 ) / 2;
+	my = ( binfo->scrny - 28 - 16 ) / 2;
+	init_mouse_curosr8 ( mcursor , find_palette ( 0x008484 ) );
+	putblock8_8( binfo ->vram , binfo->scrnx , 16 , 16 , mx , my , mcursor , 16 );
 
 	for ( ;; )
 	{
@@ -50,6 +54,15 @@ void HariMain(void)
 				if ( (mdec.btn & 0x04 ) != 0 ) s[2] = 'C';
 				boxfill8 ( binfo->vram , binfo->scrnx, find_palette( 0x00008484 ) , 32, 16 , 32 + 15*8 -1 , 31 );
 				putfonts8_asc( binfo -> vram , binfo->scrnx, 32,16,find_palette(0x00ffffff) , s );
+			
+			boxfill8 ( binfo -> vram , binfo->scrnx , find_palette(0x00008484) , mx , my , mx+15 , my+15 );
+			mx += mdec.x;
+			my += mdec.y;
+			if ( mx < 0 ) mx = 0;
+			if ( my < 0 ) my = 0;
+			if ( mx > binfo->scrnx - 16 ) mx = binfo->scrnx - 16;
+			if ( my > binfo->scrny - 16 ) my = binfo->scrny - 16;
+			putblock8_8(binfo->vram , binfo->scrnx, 16 , 16 , mx , my , mcursor , 16 );	
 			}
 		}
 	}
