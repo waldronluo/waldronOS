@@ -3,13 +3,12 @@
 
 extern struct Queue8 keyinfo;
 extern struct Queue8 mouseinfo;
-
+extern struct MOUSE_DEC mdec;
 void HariMain(void)
 {
 	struct BOOTINFO* binfo = (struct BOOTINFO *)0x0ff0;
 	char keybuf[32], mousebuf[128], s[40], mcursor[17*17];	
 	unsigned char i;
-	unsigned char mouse_dbuf[3], mouse_phase;	
 
 	init_gdtidt();
 	init_pic();
@@ -26,7 +25,7 @@ void HariMain(void)
 	init_keyboard();
 	
 	enable_mouse();
-	mouse_phase = 0;
+	init_mouse(&mdec);	
 
 	for ( ;; )
 	{
@@ -35,26 +34,22 @@ void HariMain(void)
 			io_stihlt();
 		} 
 		else if ( queue8_status(&keyinfo) != 0 ) {
-				i = queue8_get ( &keyinfo );
-				io_sti();
-				sprintf(s , "%02x" , i );
-				boxfill8(binfo->vram , binfo->scrnx, find_palette(0x00008484) , 0,0,100,16);
-				putfonts8_asc(binfo->vram, binfo->scrnx, 0 , 0 , find_palette(0x00ffffff) , s );
+			i = queue8_get ( &keyinfo );
+			io_sti();
+			sprintf(s , "%02x" , i );
+			boxfill8(binfo->vram , binfo->scrnx, find_palette(0x00008484) , 0,0,100,16);
+			putfonts8_asc(binfo->vram, binfo->scrnx, 0 , 0 , find_palette(0x00ffffff) , s );
 		}
 		else if ( queue8_status(&mouseinfo) != 0 ) {
 			i = queue8_get(&mouseinfo);
 			io_sti();
-			switch ( mouse_phase )
-			{
-				case 0: if ( i == 0xfa ) mouse_phase = 1; break;
-				case 1: mouse_dbuf[0] = i ; mouse_phase = 2;break;
-				case 2: mouse_dbuf[1] = i ; mouse_phase = 3;break;
-				case 3: mouse_dbuf[2] = i ; mouse_phase = 1;
-					sprintf( s, "%02X %02X %02X" , mouse_dbuf[0] , mouse_dbuf[1] , mouse_dbuf[2] );
-					boxfill8( binfo->vram, binfo->scrnx, find_palette(0x00008484) , 32, 16 , 32+8*8-1 , 31 );
-					putfonts8_asc(binfo->vram, binfo->scrnx, 32,16,find_palette(0x00ffffff) , s );
-				break;
-				default:;
+			if ( mouse_decode (&mdec,i) == 1 ){
+				sprintf ( s , "[lcr %4d %4d]", mdec.x , mdec.y );
+				if ( (mdec.btn & 0x01 ) != 0 ) s[1] = 'L';
+				if ( (mdec.btn & 0x02 ) != 0 ) s[3] = 'R';
+				if ( (mdec.btn & 0x04 ) != 0 ) s[2] = 'C';
+				boxfill8 ( binfo->vram , binfo->scrnx, find_palette( 0x00008484 ) , 32, 16 , 32 + 15*8 -1 , 31 );
+				putfonts8_asc( binfo -> vram , binfo->scrnx, 32,16,find_palette(0x00ffffff) , s );
 			}
 		}
 	}
