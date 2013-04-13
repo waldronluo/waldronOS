@@ -10,6 +10,9 @@ void HariMain(void)
 	char keybuf[32], mousebuf[128], s[40], mcursor[17*17];	
 	unsigned char i;
 	int mx,my;
+	unsigned int memtotal;
+
+
 	init_gdtidt();
 	init_pic();
 	io_sti();
@@ -22,6 +25,11 @@ void HariMain(void)
 	io_out8(PIC0_IMR, 0xf9);
 	io_out8(PIC1_IMR, 0xef);
 
+	memtotal = memtest ( 0x00400000 , 0xbfffffff ) / (1024*1024);	
+
+	sprintf(s , "%dMB" , (memtotal) );
+	boxfill8(binfo->vram , binfo->scrnx, find_palette(0x00008484) , 48,48,148,64);
+	putfonts8_asc(binfo->vram, binfo->scrnx, 48 , 48 , find_palette(0x00ffffff) , s );
 	init_keyboard();
 	/* Init mouse  */	
 	enable_mouse();

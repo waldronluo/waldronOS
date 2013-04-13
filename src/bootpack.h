@@ -46,17 +46,19 @@ void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, i
 void set_gatedesc(struct GATE_DESCRIPTOR* gd , int offset, int selector, int ar);
 
 /*naskfunc.nas*/
-void load_gdtr(int limit , int addr);
-void load_idtr(int limit , int addr);
-void io_hlt(void);
-void io_cli(void);
+void load_gdtr (int limit , int addr);
+void load_idtr (int limit , int addr);
+void io_hlt (void);
+void io_cli (void);
 void io_out8 ( int port , int data );
-int io_load_eflags(void);
-void io_store_eflags( int eflags );
-void asm_inthandler21(void);
-void asm_inthandler27(void);
-void asm_inthandler2c(void);
-
+int io_load_eflags (void);
+void io_store_eflags ( int eflags );
+void asm_inthandler21 (void);
+void asm_inthandler27 (void);
+void asm_inthandler2c (void);
+int memtest_sub (int start , int end);
+int load_cr0(void);
+int store_cr0(int cr0);
 /*int.c*/
 #define PIC0_ICW1 0x0020
 #define PIC0_OCW2 0x0020
@@ -122,3 +124,15 @@ struct MOUSE_DEC{
 void enable_mouse(void);
 void init_mouse ( struct MOUSE_DEC* mdec );
 int mouse_decode ( struct MOUSE_DEC* mdec, unsigned char data );
+
+/*memory.h*/
+#define EFLAGS_AC_BIT 0x00040000
+#define CR0_CACHE_DISABLE 0x60000000
+
+unsigned int memtest( unsigned int start , unsigned int end );
+void memman_init ( struct MEMMAM *man );
+unsigned int memman_total ( struct MEMMAN* man );
+unsigned int memman_alloc ( struct MEMMAN* man , unsigned int size );
+int memman_free ( struct MEMMAN* man , unsigned int addr , unsigned int size );
+unsigned int memman_alloc_4k (struct MEMMAN* man , unsigned int size );
+int memman_free_4k ( struct MEMMAN* man , unsigned int addr , unsigned int size );
