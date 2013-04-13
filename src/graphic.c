@@ -1,7 +1,7 @@
 
 #include "bootpack.h"
 #include "hankaku.c"
-
+//extern char* hankaku;
 static unsigned char table_rgb[17 * 3] = {
 		0x00,0x00,0x00,
 		0xff,0x00,0x00,
