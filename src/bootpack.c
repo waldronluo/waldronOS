@@ -4,6 +4,7 @@
 extern struct Queue8 keyinfo;
 extern struct Queue8 mouseinfo;
 extern struct MOUSE_DEC mdec;
+struct MEMMAN* memman = (struct MEMMAN *) MEMMAN_ADDR;
 void HariMain(void)
 {
 	struct BOOTINFO* binfo = (struct BOOTINFO *)0x0ff0;
@@ -25,11 +26,10 @@ void HariMain(void)
 	io_out8(PIC0_IMR, 0xf9);
 	io_out8(PIC1_IMR, 0xef);
 
-	memtotal = memtest ( 0x00400000 , 0xbfffffff ) / (1024*1024);	
-
-	sprintf(s , "%dMB" , (memtotal) );
-	boxfill8(binfo->vram , binfo->scrnx, find_palette(0x00008484) , 48,48,148,64);
-	putfonts8_asc(binfo->vram, binfo->scrnx, 48 , 48 , find_palette(0x00ffffff) , s );
+//	memtotal = memtest ( 0x00400000 , 0xbfffffff ) / (1024);	
+//	sprintf(s , "%dkB" , (memtotal) );
+//	boxfill8(binfo->vram , binfo->scrnx, find_palette(0x00008484) , 48,48,148,64);
+//	putfonts8_asc(binfo->vram, binfo->scrnx, 48 , 48 , find_palette(0x00ffffff) , s );
 	init_keyboard();
 	/* Init mouse  */	
 	enable_mouse();
@@ -38,7 +38,15 @@ void HariMain(void)
 	my = ( binfo->scrny - 28 - 16 ) / 2;
 	init_mouse_curosr8 ( mcursor , find_palette ( 0x008484 ) );
 	putblock8_8( binfo ->vram , binfo->scrnx , 16 , 16 , mx , my , mcursor , 16 );
-
+	/* memory info */
+	memtotal = memtest ( 0x00400000 , 0xbfffffff );
+	memman_init(memman);
+	memman_free(memman , 0x00001000 , 0x0009e000 );
+	memman_free(memman , 0x00400000 , memtotal - 0x00400000 );	
+	sprintf(s , "memory:%dMB   free:%dkB" , (memtotal/1024/1024) , memman_total(memman) / 1024 );
+	boxfill8(binfo->vram , binfo->scrnx, find_palette(0x00008484) ,0,48,320,64);
+	putfonts8_asc(binfo->vram, binfo->scrnx, 0 , 48 , find_palette(0x00ffffff) , s );
+	/* The OS */
 	for ( ;; )
 	{
 		io_cli();

@@ -161,13 +161,13 @@ mts_loop:
 	MOV EDX,[EBX]
 	MOV [EBX],ESI
 	XOR DWORD [EBX],0xffffffff
-	CMP ESI,[EBX]
+	CMP EDI,[EBX]
 	JNE mts_fin
 	XOR DWORD [EBX],0xffffffff
 	CMP ESI,[EBX]
 	JNE mts_fin
 	MOV [EBX],EDX
-	ADD EAX,0x1
+	ADD EAX,0x1000
 	CMP EAX,[ESP+12+8]
 	JBE mts_loop
 	POP EBX
