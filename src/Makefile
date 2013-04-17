@@ -5,7 +5,7 @@ OBJS_BOOTPACK = bootpack.obj graphic.obj naskfunc.obj dsctbl.obj \
 TOOLPATH = ../z_tools/
 INCPATH  = ../z_tools/waldronos/
 DIYPATH  = ../diy_tools/
-MAKE     = make -r 
+MAKE     = make 
 NASK     = $(TOOLPATH)nask.exe
 CC1      = $(TOOLPATH)cc1.exe -I$(INCPATH) -Os -Wall -quiet
 GAS2NASK = $(TOOLPATH)gas2nask.exe -a
@@ -19,8 +19,9 @@ MAKEFONT = $(TOOLPATH)makefont.exe
 COPY     = cp
 DEL      = rm -rf
 
-default : run
-	$(MAKE) 
+default : 
+	$(MAKE) run 
+	$(MAKE) clean
 
 hankaku.c: hankaku.txt Makefile
 	python $(DIYPATH)fontmaker.py 
