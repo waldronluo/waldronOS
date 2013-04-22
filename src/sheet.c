@@ -4,7 +4,7 @@ struct SHTCTL* shtctl_init ( struct MEMMAN* memman, unsigned char* vram, int xsi
 {
 	struct SHTCTL* ctl;
 	int i;
-	ctl = ( struct SHTCTL* )memman_alloc_4k ( memman, sizeof (SHTCTL) );
+	ctl = (struct SHTCTL *)memman_alloc_4k ( memman, sizeof (struct SHTCTL) );
 	if ( ctl == 0 ) return 0;//Err
 	
 	ctl->vram = vram;
@@ -99,13 +99,13 @@ void sheet_refresh ( struct SHTCTL* ctl )
 	int h, bx, by, vx, vy;
 	unsigned char *buf, c, *vram = ctl->vram;
 	struct SHEET *sht;
-	for (h = 0;j <= ctl->top; h++)
+	for (h = 0;h <= ctl->top; h++)
 	{
-		sht->ctl->sheets[h];
+		sht = ctl->sheets[h];
 		buf = sht->buf;
 		for (by = 0;by < sht->bysize; by++ ) {
 			vy = sht->vy0 + by;
-			for ( bx = 0; bx < sht->bysize; bx ++ )
+			for ( bx = 0; bx < sht->bxsize; bx ++ )
 			{
 				vx = sht->vx0 + bx;	
 				c = buf[by * sht->bxsize + bx];

@@ -36,3 +36,4 @@ naskfunc.nas里面的memtest\_sub函数写错了导致的问题。现在的问�
 
 泪目。。。sheets重搞吧。。。
 git reset --hard <commit ID>是获得之前版本的呀。
+git push origin master -f 是强制推送
