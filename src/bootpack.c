@@ -61,10 +61,10 @@ void HariMain(void)
 	sheet_setbuf ( sht_mouse,buf_mouse,16, 16, 99 );
 	init_screen ( buf_back , binfo->scrnx, binfo->scrny );
 	init_mouse_curosr8( buf_mouse, 99 );
-	sheet_slide ( shtctl, sht_mouse, mx, my );
-	sheet_updown ( shtctl, sht_back, 0);
-	sheet_updown ( shtctl, sht_mouse, 1 );
-	sheet_refresh ( shtctl , sht_back, 0, 0, binfo->scrnx, 48);
+	sheet_slide (  sht_mouse, mx, my );
+	sheet_updown (  sht_back, 0);
+	sheet_updown (  sht_mouse, 1 );
+	sheet_refresh (  sht_back, 0, 0, binfo->scrnx, 48);
 	/* The OS */
 	for ( ;; )
 	{
@@ -80,7 +80,7 @@ void HariMain(void)
 		//	putfonts8_asc(binfo->vram, binfo->scrnx, 0 , 0 , find_palette(0x00ffffff) , s );
 			boxfill8(buf_back , binfo->scrnx, find_palette(0x00008484) , 0,16,15,31);
 			putfonts8_asc(buf_back, binfo->scrnx, 0 , 16 , find_palette(0x00ffffff) , s );
-			sheet_refresh(shtctl, sht_back, 0, 16, 16, 32);
+			sheet_refresh( sht_back, 0, 16, 16, 32);
 		}
 		else if ( queue8_status(&mouseinfo) != 0 ) {
 			i = queue8_get(&mouseinfo);
@@ -92,20 +92,20 @@ void HariMain(void)
 				if ( (mdec.btn & 0x04 ) != 0 ) s[2] = 'C';
 				boxfill8 ( buf_back , binfo->scrnx, find_palette( 0x00008484 ) , 32, 16 , 32 + 15*8 -1 , 31 );
 				putfonts8_asc( buf_back , binfo->scrnx, 32,16,find_palette(0x00ffffff) , s );
-				sheet_refresh ( shtctl, sht_back, 32, 16, 32 + 15 * 8, 32 );	
+				sheet_refresh ( sht_back, 32, 16, 32 + 15 * 8, 32 );	
 		//		boxfill8 ( binfo -> vram , binfo->scrnx , find_palette(0x00008484) , mx , my , mx+15 , my+15 );
 				
 				mx += mdec.x;
 				my += mdec.y;
 				if ( mx < 0 ) mx = 0;
 				if ( my < 0 ) my = 0;
-				if ( mx > binfo->scrnx - 16 ) mx = binfo->scrnx - 16;
-				if ( my > binfo->scrny - 16 ) my = binfo->scrny - 16;
+				if ( mx > binfo->scrnx - 1 ) mx = binfo->scrnx - 1;
+				if ( my > binfo->scrny - 1 ) my = binfo->scrny - 1;
 				sprintf ( s, "(%3d, %3d)", mx,my );
 				boxfill8 ( buf_back, binfo->scrnx, find_palette(0x00008484), 0, 0, 79, 15 );
 				putfonts8_asc( buf_back, binfo->scrnx, 0 , 0 , find_palette(0x00ffffff), s );
-				sheet_refresh(shtctl, sht_back, 0, 0, 80, 16 );
-				sheet_slide ( shtctl, sht_mouse, mx, my );
+				sheet_refresh( sht_back, 0, 0, 80, 16 );
+				sheet_slide (  sht_mouse, mx, my );
 			
 			}
 		}

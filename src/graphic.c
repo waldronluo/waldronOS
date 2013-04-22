@@ -2,6 +2,22 @@
 #include "bootpack.h"
 #include "hankaku.c"
 //extern char* hankaku;
+static unsigned char closebtn[14][16] = {
+	"OOOOOOOOOOOOOOO@",
+	"OQQQQQQQQQQQQQ$@",
+	"OQQQQQQQQQQQQQ$@",
+	"OQQQ@@QQQQ@@QQ$@",
+	"OQQQQ@@QQ@@QQQ$@",
+	"OQQQQQ@@@@QQQQ$@",
+	"OQQQQQQ@@QQQQQ$@",
+	"OQQQQQ@@@@QQQQ$@",
+	"OQQQQ@@QQ@@QQQ$@",
+	"OQQQ@@QQQQ@@QQ$@",
+	"OQQQQQQQQQQQQQ$@",
+	"OQQQQQQQQQQQQQ$@",
+	"O$$$$$$$$$$$$$$@",
+	"@@@@@@@@@@@@@@@@",
+};
 static unsigned char table_rgb[17 * 3] = {
 		0x00,0x00,0x00,
 		0xff,0x00,0x00,
