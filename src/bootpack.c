@@ -12,6 +12,7 @@ void HariMain(void)
 	unsigned char i;
 	int mx,my;
 	unsigned int memtotal;
+	unsigned int count = 0;
 
 	/*sheet.c*/
 	struct SHTCTL *shtctl;
@@ -49,15 +50,13 @@ void HariMain(void)
 	sht_mouse= sheet_alloc ( shtctl );
 	sht_win  = sheet_alloc ( shtctl );
 	buf_back = (unsigned char*) memman_alloc_4k ( memman, binfo->scrnx * binfo->scrny );
-	buf_win  = (unsigned char*) memman_alloc_4k ( memman, 160 * 68 );
+	buf_win  = (unsigned char*) memman_alloc_4k ( memman, 160 * 52 );
 	sheet_setbuf ( sht_back, buf_back, binfo->scrnx, binfo->scrny, -1 );
 	sheet_setbuf ( sht_mouse,buf_mouse,16, 16, 99 );
-	sheet_setbuf ( sht_win, buf_win, 160, 68 , -1 );
+	sheet_setbuf ( sht_win, buf_win, 160, 52 , -1 );
 	init_screen ( buf_back , binfo->scrnx, binfo->scrny );
 	init_mouse_curosr8( buf_mouse, 99 );
-	make_window8 ( buf_win, 160, 68, "WINDOW" );
-	putfonts8_asc ( buf_win, 160, 24, 28, find_palette(0), "Welcome to" );
-	putfonts8_asc ( buf_win, 160, 24, 44, find_palette(0), " WaldronOS!" );
+	make_window8 ( buf_win, 160, 68, "count" );
 	sheet_slide (  sht_mouse, mx, my );
 	sheet_slide ( sht_win, 80, 72 );
 	sheet_updown (  sht_back, 0 );
@@ -67,7 +66,12 @@ void HariMain(void)
 
 	/* The OS */
 	for ( ;; )
-	{
+	{	
+		count ++;
+		sprintf(s, "%010d", count );
+		boxfill8(buf_win, 160, find_palette(0x00c6c6c6), 40, 28, 119, 43 );
+		putfonts8_asc(buf_win, 160, 40, 28, find_palette(0), s );
+		sheet_refresh(sht_win, 40,28,120,44);
 		io_cli();
 		if ( queue8_status(&keyinfo)+queue8_status(&mouseinfo) == 0 ) {
 			io_stihlt();
