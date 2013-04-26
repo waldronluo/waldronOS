@@ -9,7 +9,7 @@ int  find_palette( int color );
 void write_mem8(int ,int );
 void init_screen( char* , int, int );
 void init_mouse_curosr8( char* mouse , char bc );
-
+void make_window8 ( unsigned char* buf, int xsize, int ysize, char *title );
 /* asmhead.nas*/
 struct BOOTINFO {
 	char cyls, leds, vmode, reserve;
@@ -59,6 +59,7 @@ void asm_inthandler2c (void);
 int memtest_sub (int start , int end);
 int load_cr0(void);
 int store_cr0(int cr0);
+
 /*int.c*/
 #define PIC0_ICW1 0x0020
 #define PIC0_OCW2 0x0020

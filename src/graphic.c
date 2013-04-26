@@ -18,6 +18,7 @@ static unsigned char closebtn[14][16] = {
 	"O$$$$$$$$$$$$$$@",
 	"@@@@@@@@@@@@@@@@",
 };
+
 static unsigned char table_rgb[17 * 3] = {
 		0x00,0x00,0x00,
 		0xff,0x00,0x00,
@@ -174,4 +175,34 @@ void putblock8_8( char* vram , int vxsize , int pxsize , int pysize , int px0 , 
 	for ( y=0 ; y<pysize ; y++ )
 		for ( x=0 ; x<pxsize ; x++ )
 			vram [ (py0 + y ) * vxsize + ( px0 + x ) ] = buf[y * bxsize + x ];
+}
+
+void make_window8 ( unsigned char* buf, int xsize, int ysize, char *title )
+{
+	int x, y;
+	char c;
+	boxfill8 (	buf,	xsize,	find_palette(0x00c6c6c6),			0,			0,	xsize - 1,	0);	
+	boxfill8 (	buf,	xsize,	find_palette(0x00ffffff),			1,			1,	xsize - 2,	1);	
+	boxfill8 (	buf,	xsize,	find_palette(0x00c6c6c6),			0,			0,			0,	ysize - 1);	
+	boxfill8 (	buf,	xsize,	find_palette(0x00ffffff),			1,			1,			1,	ysize - 2);	
+	boxfill8 (	buf,	xsize,	find_palette(0x00848484),	xsize - 2,			1,	xsize - 2,	ysize - 2);	
+	boxfill8 (	buf,	xsize,	find_palette(0x00000000),	xsize - 1,			0,	xsize - 1,	ysize - 1);	
+	boxfill8 (	buf,	xsize,	find_palette(0x00c6c6c6),			2,			2,	xsize - 3,	ysize - 3);	
+	boxfill8 (	buf,	xsize,	find_palette(0x00000084),			3,			3,	xsize - 4,	20);	
+	boxfill8 (	buf,	xsize,	find_palette(0x00848484),			1,	ysize - 2,	xsize - 2,	ysize - 2);	
+	boxfill8 (	buf,	xsize,	find_palette(0x00000000),			0,	ysize - 1,	xsize - 1,	ysize - 1);	
+	putfonts8_asc ( buf, xsize, 24, 4, find_palette(0xffffff), title );
+	for (y = 0; y < 14; y++ ){
+		for ( x = 0; x < 16; x++ ){
+			c = closebtn[y][x];
+			switch ( c ) {
+				case '@': c = find_palette(0x00000000);break;
+				case '$': c = find_palette(0x00848484);break;
+				case 'Q': c = find_palette(0x00c6c6c6);break;
+				default: c = find_palette(0x00ffffff);break;
+			}
+			buf[(5 + y) * xsize + (xsize - 21 + x)]	= c;
+		}
+	}
+	return ;
 }
