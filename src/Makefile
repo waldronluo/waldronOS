@@ -20,7 +20,7 @@ COPY     = cp
 DEL      = rm -rf
 
 default : 
-	$(MAKE) run 
+	-$(MAKE) run 
 	$(MAKE) clean
 
 hankaku.c: hankaku.txt Makefile
@@ -92,17 +92,17 @@ clean :
 	-$(DEL) waldronos.img
 	-$(DEL) hankaku.c
 gitclean: 
-	git rm *.bin
-	git rm *.lst
-	git rm *.gas
-	git rm *.obj
-	git rm bootpack.nas
-	git rm bootpack.map
-	git rm bootpack.bim
-	git rm bootpack.hrb
-	git rm waldronos.sys
-	git rm waldronos.img
-	git rm hankaku.c
+	-git rm *.bin
+	-git rm *.lst
+	-git rm *.gas
+	-git rm *.obj
+	-git rm bootpack.nas
+	-git rm bootpack.map
+	-git rm bootpack.bim
+	-git rm bootpack.hrb
+	-git rm waldronos.sys
+	-git rm waldronos.img
+	-git rm hankaku.c
 src_only :
 	$(MAKE) clean
 	-$(DEL) waldronos.img

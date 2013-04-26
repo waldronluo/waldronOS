@@ -74,7 +74,7 @@ void HariMain(void)
 		sheet_refresh(sht_win, 40,28,120,44);
 		io_cli();
 		if ( queue8_status(&keyinfo)+queue8_status(&mouseinfo) == 0 ) {
-			io_stihlt();
+			io_sti();
 		} 
 		else if ( queue8_status(&keyinfo) != 0 ) {
 			i = queue8_get ( &keyinfo );
