@@ -29,7 +29,6 @@ void HariMain(void)
 
 	/*init timer*/
 	init_pit();
-	timerctl.count = 0;	
 
 	queue8_init(&keyinfo, 32, keybuf);
 	queue8_init(&mouseinfo, 128, mousebuf);
