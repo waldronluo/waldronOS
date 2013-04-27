@@ -1,19 +1,22 @@
 
 #include "bootpack.h"
+#include <stdio.h>
 
 extern struct Queue8 keyinfo;
 extern struct Queue8 mouseinfo;
 extern struct MOUSE_DEC mdec;
+extern struct TIMERCTL timerctl;
+
 struct MEMMAN* memman = (struct MEMMAN *) MEMMAN_ADDR;
 void HariMain(void)
 {
 	struct BOOTINFO* binfo = (struct BOOTINFO *)0x0ff0;
-	char keybuf[32], mousebuf[128], s[40], mcursor[17*17];	
+	char keybuf[32], mousebuf[128], s[40];	
 	unsigned char i;
 	int mx,my;
 	unsigned int memtotal;
 	unsigned int count = 0;
-
+	
 	/*sheet.c*/
 	struct SHTCTL *shtctl;
 	struct SHEET *sht_back, *sht_mouse, *sht_win;
@@ -23,11 +26,16 @@ void HariMain(void)
 	init_gdtidt();
 	init_pic();
 	io_sti();
+
+	/*init timer*/
+	init_pit();
+	timerctl.count = 0;	
+
 	queue8_init(&keyinfo, 32, keybuf);
 	queue8_init(&mouseinfo, 128, mousebuf);
 	
 
-	io_out8(PIC0_IMR, 0xf9);
+	io_out8(PIC0_IMR, 0xf8);
 	io_out8(PIC1_IMR, 0xef);
 
 	init_keyboard();
@@ -68,7 +76,7 @@ void HariMain(void)
 	for ( ;; )
 	{	
 		count ++;
-		sprintf(s, "%010d", count );
+		sprintf(s, "%010d", timerctl.count/100 );
 		boxfill8(buf_win, 160, find_palette(0x00c6c6c6), 40, 28, 119, 43 );
 		putfonts8_asc(buf_win, 160, 40, 28, find_palette(0), s );
 		sheet_refresh(sht_win, 40,28,120,44);

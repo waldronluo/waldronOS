@@ -1,7 +1,7 @@
 
 #include "bootpack.h"
-#include "hankaku.c"
-//extern char* hankaku;
+#include "hankaku.h"
+
 static unsigned char closebtn[14][16] = {
 	"OOOOOOOOOOOOOOO@",
 	"OQQQQQQQQQQQQQ$@",

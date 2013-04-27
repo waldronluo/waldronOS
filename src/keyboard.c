@@ -1,4 +1,5 @@
 #include "bootpack.h"
+
 struct Queue8 keyinfo;
 void wait_KBC_sendready(void)
 {

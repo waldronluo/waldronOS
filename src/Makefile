@@ -1,6 +1,6 @@
 OBJS_BOOTPACK = bootpack.obj graphic.obj naskfunc.obj dsctbl.obj \
-				hankaku.obj int.obj queue.obj keyboard.obj mouse.obj \
-				memory.obj sheet.obj 
+				int.obj queue.obj keyboard.obj mouse.obj \
+				memory.obj sheet.obj timer.obj 
 
 TOOLPATH = ../z_tools/
 INCPATH  = ../z_tools/waldronos/
@@ -20,8 +20,8 @@ COPY     = cp
 DEL      = rm -rf
 
 default : 
-	-$(MAKE) run 
-	$(MAKE) clean
+	-$(MAKE) run -slient 
+	$(MAKE) clean -s
 
 hankaku.c: hankaku.txt Makefile
 	python $(DIYPATH)fontmaker.py 
@@ -84,13 +84,22 @@ clean :
 	-$(DEL) *.lst
 	-$(DEL) *.gas
 	-$(DEL) *.obj
+	-$(DEL) graphic.nas
+	-$(DEL) int.nas
+	-$(DEL) memory.nas
+	-$(DEL) mouse.nas
+	-$(DEL) sheet.nas
+	-$(DEL) timer.nas
+	-$(DEL) queue.nas
+	-$(DEL) keyboard.nas
+	-$(DEL) dsctbl.nas
 	-$(DEL) bootpack.nas
 	-$(DEL) bootpack.map
 	-$(DEL) bootpack.bim
 	-$(DEL) bootpack.hrb
 	-$(DEL) waldronos.sys
 	-$(DEL) waldronos.img
-	-$(DEL) hankaku.c
+	-$(DEL) hankaku.h
 gitclean: 
 	-git rm *.bin
 	-git rm *.lst
