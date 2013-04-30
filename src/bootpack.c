@@ -63,7 +63,7 @@ void HariMain(void)
 		memtotal = memtest ( 0x00400000 , 0xbfffffff );
 		memman_init(memman);
 		memman_free(memman , 0x00001000 , 0x0009e000 );
-		memman_free(memman , 0x00400000 , memtotal - 0x00400000 );	
+		memman_free(memman , 0x00400000 , memtotal - 0x10000000 );	
 
 		/* sheet.c*/
 		init_palette();
@@ -130,7 +130,7 @@ void HariMain(void)
 								i -= MOUSEDATA0  ;
 								io_sti();
 								if ( mouse_decode (&mdec,i) == 1 ){
-										sprintf ( s , "[lcr %4d %4d]", mdec.x , mdec.y );
+										sprintf ( s , "[lcr %d %d]", mdec.x , mdec.y );
 										if ( (mdec.btn & 0x01 ) != 0 ) s[1] = 'L';
 										if ( (mdec.btn & 0x02 ) != 0 ) s[3] = 'R';
 										if ( (mdec.btn & 0x04 ) != 0 ) s[2] = 'C';

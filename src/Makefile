@@ -16,6 +16,7 @@ RULEFILE = $(TOOLPATH)haribote/haribote.rul
 EDIMG    = $(TOOLPATH)edimg.exe
 IMGTOL   = $(TOOLPATH)imgtol.com
 MAKEFONT = $(TOOLPATH)makefont.exe
+QEMU	 = qemu-system-i386 -m 32 -localtime -vga std -fda
 COPY     = cp
 DEL      = rm -rf
 
@@ -74,7 +75,7 @@ img :
 	$(MAKE) waldronos.img
 
 run :waldronos.img
-	qemu-system-i386 -vga std -fda waldronos.img
+	 $(QEMU) waldronos.img
 install :
 	$(MAKE) img
 	$(IMGTOL) w a: waldronos.img
