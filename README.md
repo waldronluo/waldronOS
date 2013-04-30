@@ -54,5 +54,7 @@ git push origin master -f 是强制推送
 在屏幕分辨率那裏遇到問題。
 然後去問了google老師之後還是沒有解決任何問題，最後在作者的官方網站上看到linux版的操作。。觀感是作者的某個朋友。。。[這裏是傳送們](http://bd.tank.jp/misc/haribote_on_linux.html)
 就是應該給多幾個qemu的參數。具體如下：
-- QEMU = qemu-system-i386 -fda
-+ QEMU = qemu-system-i386 -m 32 -localtime -vga std 
+從	- QEMU = qemu-system-i386 -fda
+變成+ QEMU = qemu-system-i386 -m 32 -localtime -vga std 
+
+話說最後做出的waldronOS.sys比作者的大了2kkkk.....

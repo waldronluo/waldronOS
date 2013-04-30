@@ -5,6 +5,8 @@
 extern struct MOUSE_DEC mdec;
 extern struct TIMERCTL timerctl;
 
+/*keyboard table*/
+static char keytable[0x54] = {0, 0, '1','2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', 0, 0, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '@', '[', 0,   0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', ':', 0,   0, ']', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/', 0, '*', 0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.'};
 /*queue.c*/
 struct Queue8 inputData;
 unsigned int inputBuf[128]; 
@@ -17,7 +19,6 @@ void HariMain(void)
 		unsigned int i;
 		int mx, my;
 		unsigned int memtotal;
-		unsigned int count = 0;
 
 		/*sheet.c*/
 		struct SHTCTL *shtctl;
@@ -28,8 +29,13 @@ void HariMain(void)
 		/*timer.c*/
 		struct TIMER *timer, *timer2, *timer3;
 		/*end of timer.c*/
+		
+		/*keyboard.c*/
+		int cursor_x, cursor_c;
+		cursor_x = 8;
+		cursor_c =find_palette(0xffffff);
 
-
+	
 		init_gdtidt();
 		init_pic();
 		io_sti();
@@ -78,7 +84,8 @@ void HariMain(void)
 		sheet_setbuf ( sht_win, buf_win, 160, 52 , -1 );
 		init_screen ( buf_back , binfo->scrnx, binfo->scrny );
 		init_mouse_curosr8( buf_mouse, 99 );
-		make_window8 ( buf_win, 160, 68, "count" );
+		make_window8 ( buf_win, 160, 68, "Type me" );
+		make_textbox8 ( sht_win, 8, 28, 144, 16 , find_palette(0xffffff) );
 		sheet_slide (  sht_mouse, mx, my );
 		sheet_slide ( sht_win, 80, 72 );
 		sheet_updown (  sht_back, 0 );
@@ -89,14 +96,9 @@ void HariMain(void)
 		/* The OS */
 		for ( ;; )
 		{	
-				count ++;
-				sprintf(s, "%010d", timerctl.count );
-				boxfill8(buf_win, 160, find_palette(0x00c6c6c6), 40, 28, 119, 43 );
-				putfonts8_asc(buf_win, 160, 40, 28, find_palette(0), s );
-				sheet_refresh(sht_win, 40,28,120,44);
 				io_cli();
 				if (queue8_status(&inputData) == 0 ) {
-						io_sti();
+						io_stihlt();
 				}	
 				else {
 						i = queue8_get (&inputData) ;
@@ -112,23 +114,35 @@ void HariMain(void)
 						if ( i == 0 || i == 1 ) {
 								if ( i == 1 ) {
 										timer_init ( timer3, &inputData, 0 );
-										boxfill8 ( buf_back, binfo->scrnx, find_palette(0xffffff), 8, 96, 15, 111 );
+										cursor_c = find_palette (0);
 								} else {
 										timer_init ( timer3, &inputData, 1 );
-										boxfill8 ( buf_back, binfo->scrnx, find_palette(0x008484), 8, 96, 15, 111 );
+										cursor_c = find_palette ( 0xffffff );
 								}
 								timer_settimer ( timer3, 50 );
-								sheet_refresh(sht_back, 8, 96, 16, 112 );
+								boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43 );
+								sheet_refresh(sht_win, cursor_x, 28, cursor_x + 8, 44 );
 						} 
 						if ( i >= KEYDATA0 && i < MOUSEDATA0 ) {
 								i -= KEYDATA0;
-								io_sti();
 								sprintf(s , "%02x" , i );
 								putfonts8_asc_sht ( sht_back, 0, 16, find_palette(0xffffff), find_palette(0x8484), s, 2 );
+								if (i < 0x54 && keytable[i] != 0 && cursor_x < 144) {
+									s[0] = keytable[i];
+									s[1] = 0;
+									putfonts8_asc_sht(sht_win, cursor_x, 28, find_palette(0), find_palette(0xffffff), s, 1 );
+									cursor_x += 8;
+								}
+								if ( i == 0x0e && cursor_x > 8 ) {
+									/*backspace*/
+									putfonts8_asc_sht(sht_win, cursor_x, 28, find_palette(0), find_palette(0xffffff), " ", 1 );
+									cursor_x -= 8;
+								}
+								boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43 );
+								sheet_refresh(sht_win, cursor_x, 28, cursor_x + 8, 44 );
 						}
 						if ( i >= MOUSEDATA0 ) {
 								i -= MOUSEDATA0  ;
-								io_sti();
 								if ( mouse_decode (&mdec,i) == 1 ){
 										sprintf ( s , "[lcr %d %d]", mdec.x , mdec.y );
 										if ( (mdec.btn & 0x01 ) != 0 ) s[1] = 'L';
@@ -147,7 +161,9 @@ void HariMain(void)
 										sheet_refresh( sht_back, 0, 0, 80, 16 );
 										putfonts8_asc_sht ( sht_back, 0, 0, find_palette(0xffffff), find_palette(0x8484) , s , 10 );
 										sheet_slide (  sht_mouse, mx, my );
-
+										if ( (mdec.btn & 0x01) != 0 ) {
+											sheet_slide ( sht_win, mx-80, my-8 );
+										}
 								}
 						}
 				}

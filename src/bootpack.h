@@ -39,7 +39,9 @@ void load_idtr (int limit , int addr);
 void io_hlt (void);
 void io_cli (void);
 void io_sti (void);
+void io_stihlt (void);
 int io_in8 (int port);
+
 void io_out8 ( int port , int data );
 int io_load_eflags (void);
 void io_store_eflags ( int eflags );
@@ -206,3 +208,4 @@ void write_mem8(int ,int );
 void init_screen( char* , int, int );
 void init_mouse_curosr8( char* mouse , char bc );
 void make_window8 ( unsigned char* buf, int xsize, int ysize, char *title );
+void make_textbox8 ( struct SHEET* sht, int x0, int y0, int sx, int sy, int c );
