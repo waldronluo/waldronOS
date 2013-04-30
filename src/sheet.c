@@ -169,9 +169,6 @@ void sheet_refreshsub ( struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1, 
 				vx = sht->vx0 + bx;	
 				if ( map[vy * ctl->xsize + vx] == sid )
 					vram[vy * ctl->xsize + vx] = buf[by * sht->bxsize + bx];
-//				c = buf[by * sht->bxsize + bx];
-//				if ( c != sht->col_inv )
-//					vram[vy * ctl -> xsize + vx ] = c;
 			}
 		}
 	}
