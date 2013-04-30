@@ -1,15 +1,3 @@
-/*graphic.h*/
-void boxfill8(unsigned char* vram, int xsize, unsigned char c, int x0, int y0, int x1 , int y1 );
-void putfont8 ( char *vram , int xsize, int x , int y , char c , char *font );
-void putfonts8_asc ( char *vram , int xsize , int x , int y , char c , unsigned char *s );
-void putblock8_8( char* vram , int vxsize , int pxsize , int pysize , int px0 , int py0 , char* buf , int bxsize );
-void init_palette(void);
-void set_palette(int start, int end, unsigned char* rgb);
-int  find_palette( int color );
-void write_mem8(int ,int );
-void init_screen( char* , int, int );
-void init_mouse_curosr8( char* mouse , char bc );
-void make_window8 ( unsigned char* buf, int xsize, int ysize, char *title );
 /* asmhead.nas*/
 struct BOOTINFO {
 	char cyls, leds, vmode, reserve;
@@ -77,6 +65,8 @@ int store_cr0(int cr0);
 #define PIC1_ICW3 0x00a1
 #define PIC1_ICW4 0x00a1
 #define PORT_KEYDAT 0x0060
+#define KEYDATA0 256
+#define MOUSEDATA0 768
 
 void init_pic(void);
 void inthandler21 ( int* esp );
@@ -86,7 +76,7 @@ void inthandler2c ( int* esp );
 /*queue.c*/
 #define FLAGS_OVERRUN 0x0001
 struct Queue8 {
-	unsigned char* data;
+	unsigned int* data;
 	int front, rear, size, flags;
 	/*
 	front: 	front of the queue | rear: rear of the queue |
@@ -97,8 +87,8 @@ struct Queue8 {
 	Just do  it.
 	*/
 };
-void queue8_init ( struct Queue8* queue , int size , unsigned char* data );
-int queue8_put ( struct Queue8* queue, unsigned char data );
+void queue8_init ( struct Queue8* queue , int size , unsigned int* data );
+int queue8_put ( struct Queue8* queue, unsigned int data );
 int queue8_get ( struct Queue8* queue );
 int queue8_status ( struct Queue8* queue );
 int queue8_free ( struct Queue8* queue );
@@ -187,7 +177,7 @@ void sheet_refreshmap ( struct SHTCTL* ctl, int vx0, int vy0, int vx1, int vy1, 
 struct TIMER {
 	unsigned int timeout, flags;
 	struct Queue8 *queue;
-	unsigned char data;
+	unsigned int data;
 };
 struct TIMERCTL {
 	unsigned int count, next, using;
@@ -198,5 +188,19 @@ void init_pit ( void ) ;
 void inthandler20(int *esp );
 struct TIMER *timer_alloc ( void );
 void timer_free (struct TIMER *timer);
-void timer_init ( struct TIMER *timer, struct Queue8 *queue, unsigned char data );
+void timer_init ( struct TIMER *timer, struct Queue8 *queue, unsigned int data );
 void timer_settimer ( struct TIMER *timer, unsigned int timeout );
+
+/*graphic.h*/
+void boxfill8(unsigned char* vram, int xsize, unsigned char c, int x0, int y0, int x1 , int y1 );
+void putfont8 ( char *vram , int xsize, int x , int y , char c , char *font );
+void putfonts8_asc ( char *vram , int xsize , int x , int y , char c , unsigned char *s );
+void putfonts8_asc_sht ( struct SHEET *sht, int x, int y, int c, int b, char *s, int l );
+void putblock8_8( char* vram , int vxsize , int pxsize , int pysize , int px0 , int py0 , char* buf , int bxsize );
+void init_palette(void);
+void set_palette(int start, int end, unsigned char* rgb);
+int  find_palette( int color );
+void write_mem8(int ,int );
+void init_screen( char* , int, int );
+void init_mouse_curosr8( char* mouse , char bc );
+void make_window8 ( unsigned char* buf, int xsize, int ysize, char *title );

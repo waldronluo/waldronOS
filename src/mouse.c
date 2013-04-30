@@ -1,5 +1,4 @@
 #include "bootpack.h"
-struct Queue8 mouseinfo;
 
 struct MOUSE_DEC mdec;
 

@@ -33,7 +33,7 @@ void timer_free ( struct TIMER *timer )
 	timer->flags = 0;
 	return ;
 }
-void timer_init ( struct TIMER *timer, struct Queue8 *queue, unsigned char data )
+void timer_init ( struct TIMER *timer, struct Queue8 *queue, unsigned int data )
 {
 	timer->queue = queue;
 	timer->data = data;

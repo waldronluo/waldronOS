@@ -1,6 +1,5 @@
 #include "bootpack.h"
 
-struct Queue8 keyinfo;
 void wait_KBC_sendready(void)
 {
 	while ( (io_in8(PORT_KEYSTA) & KEYSTA_SEND_NOTREADY) != 0 );

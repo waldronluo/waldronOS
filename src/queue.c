@@ -6,17 +6,17 @@
 	  Rear
 	( 1 element contained Now )
 */
-void queue8_init ( struct Queue8* queue , int size , unsigned char* data )
+void queue8_init ( struct Queue8* queue , int size , unsigned int* data )
 {
 	queue->size = size;
-	queue->data = data;
+	queue->data = data;	 
 	queue->flags = 0;
 	queue->front = 0;
 	queue->rear = 0;
 	return ;
 }
 
-int queue8_put ( struct Queue8* queue , unsigned char data )
+int queue8_put ( struct Queue8* queue , unsigned int data )
 {
 	if ( isOverRun (queue) && (queue->front==queue->rear) ) return -1;
 	
@@ -29,7 +29,7 @@ int queue8_put ( struct Queue8* queue , unsigned char data )
 
 int queue8_get ( struct Queue8* queue )
 {
-	char data;
+	int data;
 	if ( !isOverRun (queue) && (queue->front==queue->rear) ) return -1;
 	data = queue->data[queue->front];
 	queue->front++;

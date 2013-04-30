@@ -168,13 +168,18 @@ void putfonts8_asc ( char *vram , int xsize , int x , int y , char c , unsigned 
 	for ( ; *s != 0x00 ; s++, x+= 8 )
 		putfont8( vram , xsize , x, y, c,  hankaku + *s * 16 );	
 }
-
 void putblock8_8( char* vram , int vxsize , int pxsize , int pysize , int px0 , int py0 , char* buf , int bxsize )
 {
 	int x,y;
 	for ( y=0 ; y<pysize ; y++ )
 		for ( x=0 ; x<pxsize ; x++ )
 			vram [ (py0 + y ) * vxsize + ( px0 + x ) ] = buf[y * bxsize + x ];
+}
+void putfonts8_asc_sht ( struct SHEET *sht, int x, int y, int c, int b, char *s, int l )
+{
+	boxfill8 ( sht->buf, sht->bxsize, b, x, y, x + l * 8 - 1, y + 15 );
+	putfonts8_asc ( sht->buf, sht->bxsize, x, y, c, s );
+	sheet_refresh ( sht, x, y, x + l * 8, y + 16 );
 }
 
 void make_window8 ( unsigned char* buf, int xsize, int ysize, char *title )
@@ -206,3 +211,4 @@ void make_window8 ( unsigned char* buf, int xsize, int ysize, char *title )
 	}
 	return ;
 }
+

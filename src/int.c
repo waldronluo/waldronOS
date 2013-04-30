@@ -1,7 +1,6 @@
 #include "bootpack.h"
 #include <stdio.h>
-extern struct Queue8 keyinfo;
-extern struct Queue8 mouseinfo;
+extern struct Queue8 inputData;
 void init_pic (void)
 {
 	io_out8(PIC0_IMR , 0xff );
@@ -25,22 +24,21 @@ void init_pic (void)
 
 void inthandler21 ( int* esp )
 {
-	unsigned char data;
+	int data;
 	io_out8( PIC0_OCW2, 0x61 );
 	data = io_in8 ( PORT_KEYDAT );
-	queue8_put( &keyinfo , data );	
+	queue8_put( &inputData , data + KEYDATA0 );	
 	return ;
 }
 
 void inthandler2c ( int* esp )
 {
-	unsigned char data, s[4];
+	int data;
 	//struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
 	io_out8(PIC1_OCW2, 0x64);
 	io_out8(PIC0_OCW2, 0x62);
 	data = io_in8(PORT_KEYDAT);
-	queue8_put( &mouseinfo , data );
-	sprintf( s , "%02X", data );
+	queue8_put( &inputData , data + MOUSEDATA0 );
 }
 
 void inthandler27 ( int* esp )
