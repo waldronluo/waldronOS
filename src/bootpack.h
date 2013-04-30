@@ -175,15 +175,17 @@ void sheet_refreshmap ( struct SHTCTL* ctl, int vx0, int vy0, int vx1, int vy1, 
 #define TIMER_FLAGS_USING 2
 
 struct TIMER {
+	struct TIMER *next;
 	unsigned int timeout, flags;
 	struct Queue8 *queue;
 	unsigned int data;
 };
 struct TIMERCTL {
-	unsigned int count, next, using;
-	struct TIMER *timers[MAX_TIMER];
+	unsigned int count, next;
+	struct TIMER *t0;
 	struct TIMER timers0[MAX_TIMER];
 };
+
 void init_pit ( void ) ;
 void inthandler20(int *esp );
 struct TIMER *timer_alloc ( void );
