@@ -13,7 +13,7 @@ void HariMain(void)
 	struct BOOTINFO* binfo = (struct BOOTINFO *)0x0ff0;
 	char keybuf[32], mousebuf[128], s[40];	
 	unsigned char i;
-	int mx,my;
+	int mx, my;
 	unsigned int memtotal;
 	unsigned int count = 0;
 	
@@ -23,16 +23,33 @@ void HariMain(void)
 	unsigned char *buf_back, buf_mouse[256], *buf_win;
 	/* end of sheet.c*/
 
+	/*timer.c*/
+	char timerbuf[8], timerbuf2[8], timerbuf3[8];
+	struct Queue8 timerinfo, timerinfo2, timerinfo3;
+	struct TIMER *timer, *timer2, *timer3;
+	/*end of timer.c*/
+
 	init_gdtidt();
 	init_pic();
 	io_sti();
 
 	/*init timer*/
 	init_pit();
+	queue8_init(&timerinfo, 8, timerbuf);
+	queue8_init(&timerinfo2, 8, timerbuf2);
+	queue8_init(&timerinfo3, 8, timerbuf3);
+	timer = timer_alloc();
+	timer2 = timer_alloc();
+	timer3 = timer_alloc();
+	timer_init ( timer, &timerinfo, 1 );
+	timer_init ( timer2, &timerinfo2, 1 );
+	timer_init ( timer3, &timerinfo3, 1 );
+	timer_settimer ( timer, 1000 );
+	timer_settimer ( timer2, 300 );
+	timer_settimer ( timer3, 50 );
 
 	queue8_init(&keyinfo, 32, keybuf);
 	queue8_init(&mouseinfo, 128, mousebuf);
-	
 
 	io_out8(PIC0_IMR, 0xf8);
 	io_out8(PIC1_IMR, 0xef);
@@ -71,17 +88,49 @@ void HariMain(void)
 	sheet_updown (  sht_mouse, 2 );
 	sheet_refresh (  sht_back, 0, 0, binfo->scrnx, 48);
 
+	/* timer */
+	
+	
 	/* The OS */
 	for ( ;; )
 	{	
 		count ++;
-		sprintf(s, "%010d", timerctl.count/100 );
+		sprintf(s, "%010d", timerctl.count );
 		boxfill8(buf_win, 160, find_palette(0x00c6c6c6), 40, 28, 119, 43 );
 		putfonts8_asc(buf_win, 160, 40, 28, find_palette(0), s );
 		sheet_refresh(sht_win, 40,28,120,44);
 		io_cli();
-		if ( queue8_status(&keyinfo)+queue8_status(&mouseinfo) == 0 ) {
+		if (queue8_status(&keyinfo) + queue8_status(&mouseinfo) \
+			+ queue8_status(&timerinfo) \
+			+ queue8_status(&timerinfo2) \
+			+ queue8_status(&timerinfo3) \
+															== 0 ) {
 			io_sti();
+		}	
+		else if ( queue8_status(&timerinfo) != 0 ) {
+			i = queue8_get (&timerinfo) ;
+			io_sti();
+			putfonts8_asc (buf_back, binfo->scrnx, 0, 64, find_palette(0xffffff), "10[sec]");
+			sheet_refresh(sht_back, 0, 64, 56, 80);
+		} 
+		else if ( queue8_status(&timerinfo2) != 0 ) {
+			i = queue8_get (&timerinfo2) ;
+			io_sti();
+			putfonts8_asc (buf_back, binfo->scrnx, 0, 80, find_palette(0xffffff), "3[sec]");
+			sheet_refresh(sht_back, 0, 80, 48, 96);
+		} 
+		else if ( queue8_status(&timerinfo3) != 0 ) {
+			i = queue8_get (&timerinfo3) ;
+			io_sti();
+			if ( i == 1 ) {
+				timer_init ( timer3, &timerinfo3, 0 );
+				boxfill8 ( buf_back, binfo->scrnx, find_palette(0xffffff), 8, 96, 15, 111 );
+			} else {
+				timer_init ( timer3, &timerinfo3, 1 );
+				boxfill8 ( buf_back, binfo->scrnx, find_palette(0x008484), 8, 96, 15, 111 );
+			}
+			timer_settimer ( timer3, 50 );
+			sheet_refresh(sht_back, 8, 96, 16, 112 );
 		} 
 		else if ( queue8_status(&keyinfo) != 0 ) {
 			i = queue8_get ( &keyinfo );
