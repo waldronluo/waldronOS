@@ -16,6 +16,7 @@ struct BOOTINFO {
 #define AR_DATA32_RW 0x4092
 #define AR_CODE32_ER 0x409a
 #define AR_INTGATE32 0x008e
+#define AR_TSS32 0x0089
 
 struct SEGMENT_DESCRIPTOR {
 	short limit_low , base_low;
@@ -33,6 +34,14 @@ void init_gdtidt(void);
 void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
 void set_gatedesc(struct GATE_DESCRIPTOR* gd , int offset, int selector, int ar);
 
+/*mtask.c*/
+struct TSS32 {
+	int backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3;
+	int eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi;
+	int es, cs, ss, ds, fs, gs;
+	int ldtr, iomap;
+};
+
 /*naskfunc.nas*/
 void load_gdtr (int limit , int addr);
 void load_idtr (int limit , int addr);
@@ -41,7 +50,8 @@ void io_cli (void);
 void io_sti (void);
 void io_stihlt (void);
 int io_in8 (int port);
-
+void load_tr(int tr);
+void taskswitch4 (void);
 void io_out8 ( int port , int data );
 int io_load_eflags (void);
 void io_store_eflags ( int eflags );

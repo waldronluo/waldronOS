@@ -17,6 +17,7 @@
 	GLOBAL _asm_inthandler21,_asm_inthandler27,_asm_inthandler2c,_asm_inthandler20
 	GLOBAL _memtest_sub
 	GLOBAL _load_cr0, _store_cr0
+	GLOBAL _load_tr, _taskswitch4
 [SECTION .text]
 
 _io_hlt:
@@ -205,4 +206,12 @@ _store_cr0:
 	MOV EAX,[ESP+4]
 	PUSH EAX
 	POPFD
+	RET
+
+_load_tr:
+	LTR [ESP+4]
+	RET
+
+_taskswitch4:
+	JMP 4*8:0
 	RET

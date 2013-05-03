@@ -9,7 +9,9 @@ extern struct TIMERCTL timerctl;
 static char keytable[0x54] = {0, 0, '1','2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', 0, 0, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '@', '[', 0,   0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', ':', 0,   0, ']', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/', 0, '*', 0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.'};
 /*queue.c*/
 struct Queue8 inputData;
-unsigned int inputBuf[128]; 
+unsigned int inputBuf[128];
+ 
+void task_b_main(void);
 
 struct MEMMAN* memman = (struct MEMMAN *) MEMMAN_ADDR;
 void HariMain(void)
@@ -35,7 +37,11 @@ void HariMain(void)
 		cursor_x = 8;
 		cursor_c =find_palette(0xffffff);
 
-	
+		/*TSS*/
+		struct TSS32 tss_a, tss_b;
+		struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;	
+		int task_b_esp;		
+
 		init_gdtidt();
 		init_pic();
 		io_sti();
@@ -58,7 +64,36 @@ void HariMain(void)
 		io_out8(PIC0_IMR, 0xf8);
 		io_out8(PIC1_IMR, 0xef);
 
+		/* init keyboard */
 		init_keyboard();
+
+		/*task status segment:TSS*/
+		tss_a.ldtr = 0;
+		tss_a.iomap = 0x40000000;
+		tss_b.ldtr = 0;
+		tss_b.iomap = 0x40000000;
+		set_segmdesc(gdt + 3, 103, (int) &tss_a, AR_TSS32);		
+		set_segmdesc(gdt + 4, 103, (int) &tss_b, AR_TSS32);		
+		load_tr(3 * 8);
+		/*point to the bottom of the stack*/
+		task_b_esp = memman_alloc_4k (memman,64 * 1024) + 64 * 1024; 
+		tss_b.eip = (int) &task_b_main;
+		tss_b.eflags = 0x00000202; /*IF = 1*/
+		tss_b.eax = 0;
+		tss_b.ecx = 0;
+		tss_b.ebx = 0;
+		tss_b.esp = task_b_esp;
+		tss_b.ebp = 0;
+		tss_b.esi = 0;
+		tss_b.edi = 0;
+		tss_b.es = 1 * 8;
+		tss_b.cs = 2 * 8;
+		tss_b.ss = 1 * 8;
+		tss_b.ds = 1 * 8;
+		tss_b.fs = 1 * 8;
+		tss_b.gs = 1 * 8;
+			
+
 		/* Init mouse  */	
 		enable_mouse();
 		init_mouse(&mdec);	
@@ -110,6 +145,7 @@ void HariMain(void)
 						if ( i == 3 ) {
 								putfonts8_asc (buf_back, binfo->scrnx, 0, 80, find_palette(0xffffff), "3[sec]");
 								sheet_refresh(sht_back, 0, 80, 48, 96);
+								taskswitch4();
 						} 
 						if ( i == 0 || i == 1 ) {
 								if ( i == 1 ) {
@@ -168,4 +204,13 @@ void HariMain(void)
 						}
 				}
 		}
+}
+
+
+
+
+void task_b_main(void)
+{
+	while ( 1 ) 
+		io_hlt();
 }
