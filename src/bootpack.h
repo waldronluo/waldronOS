@@ -42,6 +42,10 @@ struct TSS32 {
 	int ldtr, iomap;
 };
 
+extern struct TIMER *mt_timer;
+void mt_init (void);
+void mt_taskswitch (void);
+
 /*naskfunc.nas*/
 void load_gdtr (int limit , int addr);
 void load_idtr (int limit , int addr);
@@ -51,7 +55,9 @@ void io_sti (void);
 void io_stihlt (void);
 int io_in8 (int port);
 void load_tr(int tr);
+void taskswitch3 (void);
 void taskswitch4 (void);
+void farjmp (int eip, int cs);
 void io_out8 ( int port , int data );
 int io_load_eflags (void);
 void io_store_eflags ( int eflags );

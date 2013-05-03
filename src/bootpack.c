@@ -11,7 +11,7 @@ static char keytable[0x54] = {0, 0, '1','2', '3', '4', '5', '6', '7', '8', '9', 
 struct Queue8 inputData;
 unsigned int inputBuf[128];
  
-void task_b_main(void);
+void task_b_main(struct SHEET* sht_back);
 
 struct MEMMAN* memman = (struct MEMMAN *) MEMMAN_ADDR;
 void HariMain(void)
@@ -42,6 +42,7 @@ void HariMain(void)
 		struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;	
 		int task_b_esp;		
 
+	
 		init_gdtidt();
 		init_pic();
 		io_sti();
@@ -76,7 +77,7 @@ void HariMain(void)
 		set_segmdesc(gdt + 4, 103, (int) &tss_b, AR_TSS32);		
 		load_tr(3 * 8);
 		/*point to the bottom of the stack*/
-		task_b_esp = memman_alloc_4k (memman,64 * 1024) + 64 * 1024; 
+		task_b_esp = memman_alloc_4k (memman, 64 * 1024) + 64 * 1024 - 8; 
 		tss_b.eip = (int) &task_b_main;
 		tss_b.eflags = 0x00000202; /*IF = 1*/
 		tss_b.eax = 0;
@@ -128,6 +129,8 @@ void HariMain(void)
 		sheet_updown (  sht_mouse, 2 );
 		sheet_refresh (  sht_back, 0, 0, binfo->scrnx, 48);
 
+		*((int*) (task_b_esp + 4)) = (int) sht_back;
+		mt_init();
 		/* The OS */
 		for ( ;; )
 		{	
@@ -145,7 +148,7 @@ void HariMain(void)
 						if ( i == 3 ) {
 								putfonts8_asc (buf_back, binfo->scrnx, 0, 80, find_palette(0xffffff), "3[sec]");
 								sheet_refresh(sht_back, 0, 80, 48, 96);
-								taskswitch4();
+								timer_settimer ( timer2, 300 );
 						} 
 						if ( i == 0 || i == 1 ) {
 								if ( i == 1 ) {
@@ -209,8 +212,29 @@ void HariMain(void)
 
 
 
-void task_b_main(void)
+void task_b_main(struct SHEET* sht_back)
 {
-	while ( 1 ) 
-		io_hlt();
+	struct Queue8 queue;
+	struct TIMER *timer;
+	int i;
+	int count = 0;
+	int queue_buf [128];
+	char s[11];
+		
+	queue8_init (&queue, 128, queue_buf);
+	timer = timer_alloc();
+	timer_init(timer, &queue, 1 );
+	timer_settimer(timer, 100);
+	while ( 1 ) {
+		count ++;
+		sprintf (s, "%10d", count );
+		putfonts8_asc_sht(sht_back, 0, 144, find_palette(0xffffff), find_palette(0x8484), s , 10 );
+		io_cli();
+		if ( queue8_status(&queue) == 0 ){
+			io_stihlt();
+		} else {
+			i = queue8_get (&queue);
+			io_sti();
+		}
+	}
 }

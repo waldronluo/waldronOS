@@ -83,7 +83,7 @@ void timer_settimer ( struct TIMER *timer, unsigned int timeout )
 
 void inthandler20(int *esp)
 {
-//	int i;
+	char ts = 0;
 	struct TIMER *timer;
 	io_out8(PIC0_OCW2, 0x60);
 	timerctl.count ++ ;
@@ -96,13 +96,19 @@ void inthandler20(int *esp)
 		if ( timer->timeout > timerctl.count )
 			break;
 		timer->flags = TIMER_FLAGS_ALLOC;
-		queue8_put ( timer->queue, timer->data );
+		if ( timer != mt_timer ) {
+			queue8_put ( timer->queue, timer->data );
+		} else {
+			ts = 1;
+		}		
 		timer = timer->next;
 	}
 //	timerctl.using -= i;
 	
 	timerctl.t0 = timer;
 	timerctl.next = timerctl.t0->timeout;
+	if ( ts != 0 )
+		mt_taskswitch();
 	return ;
 }
 
