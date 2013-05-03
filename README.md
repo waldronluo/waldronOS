@@ -58,3 +58,6 @@ git push origin master -f 是强制推送
 變成+ QEMU = qemu-system-i386 -m 32 -localtime -vga std 
 
 話說最後做出的waldronOS.sys比作者的大了2kkkk.....
+
+#**第十五天**
+多任務初步完成。巨簡單哪。。。
