@@ -17,7 +17,7 @@ struct TASK *task_init (struct MEMMAN *memman)
 	}
 	task = task_alloc();
 	task->flags = 2;
-	task->priority = 10;
+	task->priority = 1;
 	taskctl->running = 1;
 	taskctl->now = 0;
 	taskctl->tasks[0] = task;
