@@ -124,14 +124,14 @@ void HariMain(void)
 			task_b[i]->tss.fs = 1 * 8;	
 			task_b[i]->tss.gs = 1 * 8;	
 			*((int*) (task_b[i]->tss.esp + 4)) = (int) sht_win_b[i];
-			task_run(task_b[i]);
+			task_run(task_b[i],  i + 1 );
 		}
 		/* The OS */
 		for ( ;; )
 		{	
 				io_cli();
 				if (queue8_status(&inputData) == 0 ) {
-						task_sleep(task_a);
+		//				task_sleep(task_a);
 						io_sti();
 				}	
 				else {
@@ -211,7 +211,7 @@ void task_b_main(struct SHEET* sht_win_b)
 	queue8_init (&queue, 128, queue_buf, 0);
 	timer = timer_alloc();
 	timer_init(timer, &queue, 100 );
-	timer_settimer(timer, 10);
+	timer_settimer(timer, 100);
 	while ( 1 ) {
 		count ++;
 		io_cli();
@@ -224,7 +224,7 @@ void task_b_main(struct SHEET* sht_win_b)
 				sprintf(s, "%11d", count - count0 );
 				putfonts8_asc_sht (sht_win_b, 24, 28, find_palette(0), find_palette(0xc6c6c6), s, 11);
 				count0 = count;
-				timer_settimer(timer, 10);
+				timer_settimer(timer, 100);
 			}
 		}
 	}
