@@ -107,11 +107,12 @@ void HariMain(void)
 		sheet_updown (  sht_win_b[2], 3 );
 		sheet_updown (  sht_win, 4 );
 		sheet_updown (  sht_mouse, 5 );
-		sheet_refresh (  sht_back, 0, 0, binfo->scrnx, 48);
+		sheet_refresh (  sht_back, 0, 0, binfo->scrnx, binfo->scrny);
 
 		/*task status segment:TSS*/
 		task_a = task_init (memman);
 		inputData.task = task_a;
+		task_run(task_a, 1, 0);
 		for (i = 0;i < 3; i++ )
 		{
 			task_b[i] = task_alloc();
@@ -124,19 +125,19 @@ void HariMain(void)
 			task_b[i]->tss.fs = 1 * 8;	
 			task_b[i]->tss.gs = 1 * 8;	
 			*((int*) (task_b[i]->tss.esp + 4)) = (int) sht_win_b[i];
-			task_run(task_b[i],  i + 1 );
+			task_run(task_b[i],2,  i + 1 );
 		}
 		/* The OS */
 		for ( ;; )
 		{	
 				io_cli();
 				if (queue8_status(&inputData) == 0 ) {
-					//	task_sleep(task_a);
-						task_a->priority = 1;
+						task_sleep(task_a);
+					//	task_a->priority = 1;
 						io_sti();
 				}	
 				else {
-						task_a->priority = 10;
+					//	task_a->priority = 10;
 						i = queue8_get (&inputData) ;
 						io_sti();
 						if ( i == 0 || i == 1 ) {

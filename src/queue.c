@@ -29,7 +29,7 @@ int queue8_put ( struct Queue8* queue , unsigned int data )
 	/*task ... */
 	if ( queue->task != 0)
 		if ( queue->task->flags != 2)
-			task_run(queue->task, 0);	
+			task_run(queue->task, -1, 0);	
 
 	return 0;
 }

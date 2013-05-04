@@ -48,8 +48,6 @@ void io_sti (void);
 void io_stihlt (void);
 int io_in8 (int port);
 void load_tr(int tr);
-void taskswitch3 (void);
-void taskswitch4 (void);
 void farjmp (int eip, int cs);
 void io_out8 ( int port , int data );
 int io_load_eflags (void);
@@ -223,6 +221,8 @@ void make_textbox8 ( struct SHEET* sht, int x0, int y0, int sx, int sy, int c );
 
 /*mtask.c*/
 #define MAX_TASKS 1000
+#define MAX_TASKS_LV 100
+#define MAX_TASKLEVELS 10
 #define TASK_GDT0 3
 struct TSS32 {
 	int backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3;
@@ -233,21 +233,30 @@ struct TSS32 {
 
 struct TASK {
 	int sel, flags;
-	int priority;
+	int level, priority;
 	struct TSS32 tss;
 };
 
-struct TASKCTL {
+struct TASKLEVEL {
 	int running;
-	int now; // which one is running now
-	struct TASK *tasks[MAX_TASKS];
+	int now;
+	struct TASK *tasks[MAX_TASKS_LV];
+};
+
+struct TASKCTL {
+	int now_lv;
+	char lv_change; // which one is running now
+	struct TASKLEVEL level[MAX_TASKLEVELS];
 	struct TASK tasks0[MAX_TASKS];
 };
 
 extern struct TIMER *task_timer;
 
+struct TASK *task_now (void);
 struct TASK *task_init(struct MEMMAN *memman);
 struct TASK *task_alloc (void);
-void task_run (struct TASK *task, int priority);
+void task_add (struct TASK *task);
+void task_remove(struct TASK *task);
+void task_run (struct TASK *task, int level, int priority);
 void task_switch (void);
 void task_sleep (struct TASK *task);
