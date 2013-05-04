@@ -217,7 +217,7 @@ int  find_palette( int color );
 void write_mem8(int ,int );
 void init_screen( char* , int, int );
 void init_mouse_curosr8( char* mouse , char bc );
-void make_window8 ( unsigned char* buf, int xsize, int ysize, char *title );
+void make_window8 ( unsigned char* buf, int xsize, int ysize, char *title, char act );
 void make_textbox8 ( struct SHEET* sht, int x0, int y0, int sx, int sy, int c );
 
 

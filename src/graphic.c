@@ -182,10 +182,17 @@ void putfonts8_asc_sht ( struct SHEET *sht, int x, int y, int c, int b, char *s,
 	sheet_refresh ( sht, x, y, x + l * 8, y + 16 );
 }
 
-void make_window8 ( unsigned char* buf, int xsize, int ysize, char *title )
+void make_window8 ( unsigned char* buf, int xsize, int ysize, char *title, char act )
 {
 	int x, y;
-	char c;
+	char c, tc, tbc;
+	if (act != 0 ) {
+		tc = find_palette(0xffffff);
+		tbc = find_palette(0x84);
+	} else {
+		tc = find_palette(0xc6c6c6);
+		tbc = find_palette(0x848484);
+	}
 	boxfill8 (	buf,	xsize,	find_palette(0x00c6c6c6),			0,			0,	xsize - 1,	0);	
 	boxfill8 (	buf,	xsize,	find_palette(0x00ffffff),			1,			1,	xsize - 2,	1);	
 	boxfill8 (	buf,	xsize,	find_palette(0x00c6c6c6),			0,			0,			0,	ysize - 1);	
