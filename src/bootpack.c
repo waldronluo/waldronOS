@@ -38,7 +38,7 @@ void HariMain(void)
 		cursor_c =find_palette(0xffffff);
 
 		/*TSS*/
-		struct TASK* task_b;
+		struct TASK *task_a, *task_b;
 
 	
 		init_gdtidt();
@@ -46,7 +46,7 @@ void HariMain(void)
 		io_sti();
 
 		/*queue.c*/
-		queue8_init( &inputData , 128, inputBuf );
+		queue8_init( &inputData , 128, inputBuf, 0 );
 
 		/*init timer*/
 		init_pit();
@@ -102,7 +102,8 @@ void HariMain(void)
 		sheet_refresh (  sht_back, 0, 0, binfo->scrnx, 48);
 
 		/*task status segment:TSS*/
-		task_init (memman);
+		task_a = task_init (memman);
+		inputData.task = task_a;
 		task_b = task_alloc();
 		task_b->tss.esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024 - 8;
 		task_b->tss.eip = (int) &task_b_main;
@@ -119,7 +120,8 @@ void HariMain(void)
 		{	
 				io_cli();
 				if (queue8_status(&inputData) == 0 ) {
-						io_stihlt();
+						task_sleep(task_a);
+						io_sti();
 				}	
 				else {
 						i = queue8_get (&inputData) ;
@@ -204,7 +206,7 @@ void task_b_main(struct SHEET* sht_back)
 	int queue_buf [128];
 	char s[11];
 		
-	queue8_init (&queue, 128, queue_buf);
+	queue8_init (&queue, 128, queue_buf, 0);
 	timer = timer_alloc();
 	timer_init(timer, &queue, 1 );
 	timer_settimer(timer, 100);

@@ -6,13 +6,14 @@
 	  Rear
 	( 1 element contained Now )
 */
-void queue8_init ( struct Queue8* queue , int size , unsigned int* data )
+void queue8_init ( struct Queue8* queue , int size , unsigned int* data, struct TASK *task )
 {
 	queue->size = size;
 	queue->data = data;	 
 	queue->flags = 0;
 	queue->front = 0;
 	queue->rear = 0;
+	queue->task = task;
 	return ;
 }
 
@@ -24,6 +25,12 @@ int queue8_put ( struct Queue8* queue , unsigned int data )
 	queue->rear++;
 	if ( queue->rear == queue->size ) queue->rear = 0;
 	if ( queue->rear == queue->front ) queue->flags |= FLAGS_OVERRUN;
+
+	/*task ... */
+	if ( queue->task != 0)
+		if ( queue->task->flags != 2)
+			task_run(queue->task);	
+
 	return 0;
 }
 

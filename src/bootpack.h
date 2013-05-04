@@ -1,3 +1,7 @@
+/*precompile*/
+struct TASK;
+
+
 /* asmhead.nas*/
 struct BOOTINFO {
 	char cyls, leds, vmode, reserve;
@@ -85,6 +89,7 @@ void inthandler2c ( int* esp );
 struct Queue8 {
 	unsigned int* data;
 	int front, rear, size, flags;
+	struct TASK *task;
 	/*
 	front: 	front of the queue | rear: rear of the queue |
 	size: size of the queue
@@ -94,7 +99,7 @@ struct Queue8 {
 	Just do  it.
 	*/
 };
-void queue8_init ( struct Queue8* queue , int size , unsigned int* data );
+void queue8_init ( struct Queue8* queue , int size , unsigned int* data, struct TASK *task );
 int queue8_put ( struct Queue8* queue, unsigned int data );
 int queue8_get ( struct Queue8* queue );
 int queue8_status ( struct Queue8* queue );
@@ -244,3 +249,4 @@ struct TASK *task_init(struct MEMMAN *memman);
 struct TASK *task_alloc (void);
 void task_run (struct TASK *task);
 void task_switch (void);
+void task_sleep (struct TASK *task);
