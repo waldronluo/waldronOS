@@ -34,17 +34,6 @@ void init_gdtidt(void);
 void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
 void set_gatedesc(struct GATE_DESCRIPTOR* gd , int offset, int selector, int ar);
 
-/*mtask.c*/
-struct TSS32 {
-	int backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3;
-	int eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi;
-	int es, cs, ss, ds, fs, gs;
-	int ldtr, iomap;
-};
-
-extern struct TIMER *mt_timer;
-void mt_init (void);
-void mt_taskswitch (void);
 
 /*naskfunc.nas*/
 void load_gdtr (int limit , int addr);
@@ -225,3 +214,33 @@ void init_screen( char* , int, int );
 void init_mouse_curosr8( char* mouse , char bc );
 void make_window8 ( unsigned char* buf, int xsize, int ysize, char *title );
 void make_textbox8 ( struct SHEET* sht, int x0, int y0, int sx, int sy, int c );
+
+
+/*mtask.c*/
+#define MAX_TASKS 1000
+#define TASK_GDT0 3
+struct TSS32 {
+	int backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3;
+	int eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi;
+	int es, cs, ss, ds, fs, gs;
+	int ldtr, iomap;
+};
+
+struct TASK {
+	int sel, flags;
+	struct TSS32 tss;
+};
+
+struct TASKCTL {
+	int running;
+	int now; // which one is running now
+	struct TASK *tasks[MAX_TASKS];
+	struct TASK tasks0[MAX_TASKS];
+};
+
+extern struct TIMER *task_timer;
+
+struct TASK *task_init(struct MEMMAN *memman);
+struct TASK *task_alloc (void);
+void task_run (struct TASK *task);
+void task_switch (void);
