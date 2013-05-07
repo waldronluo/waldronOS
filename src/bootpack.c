@@ -38,7 +38,7 @@ void HariMain(void)
 		cursor_c =find_palette(0xffffff);
 
 		/*TSS*/
-		struct TASK *task_a, *task_b[3];
+		struct TASK *task_a;// *task_b[3];
 
 	
 		init_gdtidt();
@@ -113,7 +113,7 @@ void HariMain(void)
 		task_a = task_init (memman);
 		inputData.task = task_a;
 		task_run(task_a, 1, 0);
-		for (i = 0;i < 3; i++ )
+	/*	for (i = 0;i < 3; i++ )
 		{
 			task_b[i] = task_alloc();
 			task_b[i]->tss.esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024 - 8;
@@ -127,6 +127,7 @@ void HariMain(void)
 			*((int*) (task_b[i]->tss.esp + 4)) = (int) sht_win_b[i];
 			task_run(task_b[i],2,  i + 1 );
 		}
+	*/
 		/* The OS */
 		for ( ;; )
 		{	
