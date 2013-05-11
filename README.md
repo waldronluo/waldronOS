@@ -1,6 +1,36 @@
 ##waldronOS
 ***笔记君在此***
-
+#**第一天**
+关于*cpu*
+只是处理电信号的集成电路
+关于*汇编*
+DB = Data type.
+RESB = reserve byte.（从现在开始的地址空出十个字节来，就可以写成RESB 10）
+#**第二天**
+AX accumulator 
+CX counter
+DX data
+BX base
+SP stack pointer
+BP base pointer
+SI source index
+DI destination index
+(32位)
+EAX 低16位是AX
+ECX 低16位是CX
+EDX 类推
+EBX
+ESP
+EBP
+ESI
+EDI
+关于*汇编*
+mov [678],123 ;678位置上（8位）变成123（01111011）
+mov byte [678], 123 ;678位置变成123,679变成0（16位）
+关于*org 0x7c00*
+0xf0000地址储存bios
+bios默认调用0x7c00的操作系统
+0x7c00~0x7dff;启动区内容装载地址
 #**第三天**
 第三天到加入c的时候代码有比较大的飞跃，因此可以直接从第三天最后开始做最后的。
 
