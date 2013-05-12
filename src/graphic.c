@@ -184,15 +184,6 @@ void putfonts8_asc_sht ( struct SHEET *sht, int x, int y, int c, int b, char *s,
 
 void make_window8 ( unsigned char* buf, int xsize, int ysize, char *title, char act )
 {
-	int x, y;
-	char c, tc, tbc;
-	if (act != 0 ) {
-		tc = find_palette(0xffffff);
-		tbc = find_palette(0x84);
-	} else {
-		tc = find_palette(0xc6c6c6);
-		tbc = find_palette(0x848484);
-	}
 	boxfill8 (	buf,	xsize,	find_palette(0x00c6c6c6),			0,			0,	xsize - 1,	0);	
 	boxfill8 (	buf,	xsize,	find_palette(0x00ffffff),			1,			1,	xsize - 2,	1);	
 	boxfill8 (	buf,	xsize,	find_palette(0x00c6c6c6),			0,			0,			0,	ysize - 1);	
@@ -203,7 +194,22 @@ void make_window8 ( unsigned char* buf, int xsize, int ysize, char *title, char 
 	boxfill8 (	buf,	xsize,	find_palette(0x00000084),			3,			3,	xsize - 4,	20);	
 	boxfill8 (	buf,	xsize,	find_palette(0x00848484),			1,	ysize - 2,	xsize - 2,	ysize - 2);	
 	boxfill8 (	buf,	xsize,	find_palette(0x00000000),			0,	ysize - 1,	xsize - 1,	ysize - 1);	
-	putfonts8_asc ( buf, xsize, 24, 4, find_palette(0xffffff), title );
+	make_wtitle8(buf, xsize, title, act);
+	return;
+}
+void make_wtitle8(unsigned char *buf, int xsize, char *title, char act)
+{
+	int x, y;
+	char c, tc, tbc;
+	if (act != 0 ) {
+		tc = find_palette(0xffffff);
+		tbc = find_palette(0x84);
+	} else {
+		tc = find_palette(0xc6c6c6);
+		tbc = find_palette(0x848484);
+	}
+	boxfill8(buf,xsize, tbc, 3, 3, xsize - 4, 20);
+	putfonts8_asc ( buf, xsize, 24, 4, tc , title );
 	for (y = 0; y < 14; y++ ){
 		for ( x = 0; x < 16; x++ ){
 			c = closebtn[y][x];
