@@ -6,7 +6,28 @@ extern struct MOUSE_DEC mdec;
 extern struct TIMERCTL timerctl;
 
 /*keyboard table*/
-static char keytable[0x54] = {0, 0, '1','2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', 0, 0, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '@', '[', 0,   0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', ':', 0,   0, ']', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/', 0, '*', 0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.'};
+	static char keytable0[0x80] = {
+		0,   0,   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', 0,   0,
+		'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '@', '[', 0,   0,   'A', 'S',
+		'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', ':', 0,   0,   ']', 'Z', 'X', 'C', 'V',
+		'B', 'N', 'M', ',', '.', '/', 0,   '*', 0,   ' ', 0,   0,   0,   0,   0,   0,
+		0,   0,   0,   0,   0,   0,   0,   '7', '8', '9', '-', '4', '5', '6', '+', '1',
+		'2', '3', '0', '.', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+		0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+		0,   0,   0,   0x5c, 0,  0,   0,   0,   0,   0,   0,   0,   0,   0x5c, 0,  0
+	};
+
+	static char keytable1[0x81] = {
+		 0,   0,   '!', 0x22, '#', '$', '%', '&', 0x27, '(', ')', '~', '=', '~', 0,   0,
+		'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '`', '{', 0,   0,   'A', 'S',
+		'D', 'F', 'G', 'H', 'J', 'K', 'L', '+', '*', 0,   0,   '}', 'Z', 'X', 'C', 'V',
+		'B', 'N', 'M', '<', '>', '?', 0,   '*', 0,   ' ', 0,   0,   0,   0,   0,   0,
+		0,   0,   0,   0,   0,   0,   0,   '7', '8', '9', '-', '4', '5', '6', '+', '1',
+		'2', '3', '0', '.', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+		0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+		0,   0,   0,   '_', 0,   0,   0,   0,   0,   0,   0,   0,   0,   '|', 0,   0
+//charaters are not right
+	};
 /*queue.c*/
 struct Queue8 inputData;
 unsigned int inputBuf[128];
@@ -19,7 +40,7 @@ void HariMain(void)
 		struct BOOTINFO* binfo = (struct BOOTINFO *)0x0ff0;
 		char s[40];	
 		unsigned int i;
-		int  key_to = 0;
+		int  key_to = 0, key_shift = 0, key_leds = (binfo->leds >> 4) & 7;
 		int mx, my;
 		unsigned int memtotal;
 
@@ -147,19 +168,39 @@ void HariMain(void)
 								sheet_refresh(sht_win, cursor_x, 28, cursor_x + 8, 44 );
 						} 
 						if ( i >= KEYDATA0 && i < MOUSEDATA0 ) {
+								/*keypat*/
 								i -= KEYDATA0;
 								sprintf(s , "%02x" , i );
 								putfonts8_asc_sht ( sht_back, 0, 16, find_palette(0xffffff), find_palette(0x8484), s, 2 );
-								if (i < 0x54 && keytable[i] != 0 && cursor_x < 144) {
-									if ( key_to == 0 ) {
-										s[0] = keytable[i];
-										s[1] = 0;
-										putfonts8_asc_sht(sht_win, cursor_x, 28, find_palette(0), find_palette(0xffffff), s, 1 );
-										cursor_x += 8;
-									} else {
-										queue8_put(&task_cons->queue, keytable[i] + 256 );
+								
+								if ( i < 0x80 ) {
+									if ( key_shift == 0 ) s[0] = keytable0[i];
+									if ( key_shift == 1 ) s[0] = keytable1[i];
+								} else { s[0] = 0; }
+								if ( 'A' <= s[0] && s[0] <= 'Z' ) {
+									if (((key_leds & 4) == 0 && key_shift == 0 ) || ((key_leds & 4) != 0 && key_shift != 0)) s[0] += 0x20;
+								}
+								if ( s[0] != 0 ) {
+									if ( key_to == 0 ) {  
+										if (cursor_x < 128) {
+											s[1] = 0;
+											putfonts8_asc_sht(sht_win, cursor_x, 28, find_palette(0), find_palette(0xffffff), s, 1 );
+											cursor_x += 8;	
+										}
+									}
+									if ( key_to == 1 ) {
+										queue8_put(&task_cons->queue, s[0] + 256 );
 									}
 								}
+					
+								if ( i == 0x3a ) {
+									if ((key_leds & 4) != 0) key_leds &= (~4);
+									else key_leds |= (4);
+								}
+								if ( i == 0x2a ) key_shift |= 1;
+								if ( i == 0x36 ) key_shift |= 2;
+								if ( i == 0xaa ) key_shift &= ~1;
+								if ( i == 0xb6 ) key_shift &= ~2;
 								if ( i == 0x0e && cursor_x > 8 ) {
 									/*backspace*/
 									if ( key_to == 0 ) {
@@ -172,6 +213,7 @@ void HariMain(void)
 								boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43 );
 								sheet_refresh(sht_win, cursor_x, 28, cursor_x + 8, 44 );
 								if ( i == 0x0f ) {
+									/* Tab */
 									if (key_to == 0){
 										key_to = 1;
 										make_wtitle8(buf_win, sht_win->bxsize, "task_a", 0);
@@ -219,9 +261,11 @@ void console_task (struct SHEET* sheet)
 //	struct Queue8 queue;
 	struct TIMER *timer;
 	struct TASK *task = task_now();
-	
+//	int array[10000];	
 	char s[2];
 	int i, queuebuf[128], cursor_x = 16 , cursor_c = find_palette(0);
+	int *test;
+//	test = memman_alloc_4k(memman, 10000000 );
 	queue8_init(&task->queue, 128, queuebuf, task);
 	timer = timer_alloc();
 	timer_init (timer, &task->queue, 1);
