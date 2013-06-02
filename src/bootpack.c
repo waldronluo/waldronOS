@@ -1,7 +1,7 @@
 
 #include "bootpack.h"
 #include <stdio.h>
-
+#include <string.h>
 extern struct MOUSE_DEC mdec;
 extern struct TIMERCTL timerctl;
 
@@ -32,7 +32,7 @@ static char keytable1[0x81] = {
 struct Queue8 inputData;
 unsigned int inputBuf[128];
 
-void console_task(struct SHEET* sheet);
+void console_task(struct SHEET* sheet, unsigned int memtotal);
 
 struct MEMMAN* memman = (struct MEMMAN *) MEMMAN_ADDR;
 void HariMain(void)
@@ -140,6 +140,7 @@ void HariMain(void)
     task_cons->tss.fs = 1 * 8;
     task_cons->tss.gs = 1 * 8;
     *((int *) (task_cons->tss.esp + 4) ) = (int) sht_cons;
+    *((int *) (task_cons->tss.esp + 8) ) = (int) memtotal;
     task_run (task_cons, 2, 2);
 
     sheet_slide(sht_cons, 32, 4);
@@ -174,8 +175,8 @@ void HariMain(void)
             if ( i >= KEYDATA0 && i < MOUSEDATA0 ) {
                 /*keypat*/
                 i -= KEYDATA0;
-                sprintf(s , "%02x" , i );
-                putfonts8_asc_sht ( sht_back, 0, 16, find_palette(0xffffff), find_palette(0x8484), s, 2 );
+                //sprintf(s , "%02x" , i );
+                //putfonts8_asc_sht ( sht_back, 0, 16, find_palette(0xffffff), find_palette(0x8484), s, 2 );
 
                 if ( i < 0x80 ) {
                     if ( key_shift == 0 ) s[0] = keytable0[i];
@@ -242,22 +243,22 @@ void HariMain(void)
             if ( i >= MOUSEDATA0 ) {
                 i -= MOUSEDATA0  ;
                 if ( mouse_decode (&mdec,i) == 1 ){
-                    sprintf ( s , "[lcr %d %d]", mdec.x , mdec.y );
-                    if ( (mdec.btn & 0x01 ) != 0 ) s[1] = 'L';
-                    if ( (mdec.btn & 0x02 ) != 0 ) s[3] = 'R';
-                    if ( (mdec.btn & 0x04 ) != 0 ) s[2] = 'C';
-                    putfonts8_asc_sht ( sht_back, 32, 16, find_palette(0xffffff), find_palette(0x8484), s  , 15	);
+                //    sprintf ( s , "[lcr %d %d]", mdec.x , mdec.y );
+                //    if ( (mdec.btn & 0x01 ) != 0 ) s[1] = 'L';
+                //    if ( (mdec.btn & 0x02 ) != 0 ) s[3] = 'R';
+                //    if ( (mdec.btn & 0x04 ) != 0 ) s[2] = 'C';
+                //    putfonts8_asc_sht ( sht_back, 32, 16, find_palette(0xffffff), find_palette(0x8484), s  , 15	);
                     mx += mdec.x;
                     my += mdec.y;
                     if ( mx < 0 ) mx = 0;
                     if ( my < 0 ) my = 0;
                     if ( mx > binfo->scrnx - 1 ) mx = binfo->scrnx - 1;
                     if ( my > binfo->scrny - 1 ) my = binfo->scrny - 1;
-                    sprintf ( s, "(%3d, %3d)", mx,my );
-                    boxfill8 ( buf_back, binfo->scrnx, find_palette(0x00008484), 0, 0, 79, 15 );
-                    putfonts8_asc( buf_back, binfo->scrnx, 0 , 0 , find_palette(0x00ffffff), s );
-                    sheet_refresh( sht_back, 0, 0, 80, 16 );
-                    putfonts8_asc_sht ( sht_back, 0, 0, find_palette(0xffffff), find_palette(0x8484) , s , 10 );
+                //    sprintf ( s, "(%3d, %3d)", mx,my );
+                //    boxfill8 ( buf_back, binfo->scrnx, find_palette(0x00008484), 0, 0, 79, 15 );
+                //    putfonts8_asc( buf_back, binfo->scrnx, 0 , 0 , find_palette(0x00ffffff), s );
+                //    sheet_refresh( sht_back, 0, 0, 80, 16 );
+                //    putfonts8_asc_sht ( sht_back, 0, 0, find_palette(0xffffff), find_palette(0x8484) , s , 10 );
                     sheet_slide (  sht_mouse, mx, my );
                     if ( (mdec.btn & 0x01) != 0 ) {
                         sheet_slide ( sht_win, mx-80, my-8 );
@@ -268,14 +269,15 @@ void HariMain(void)
     }
 }
 
-void console_task (struct SHEET* sheet)
+void console_task (struct SHEET* sheet, unsigned int memtotal)
 {
     //	struct Queue8 queue;
     struct TIMER *timer;
     struct TASK *task = task_now();
     //	int array[10000];	
-    char s[2];
+    char s[30], cmdline[30];
     int i, queuebuf[128], cursor_x = 16, cursor_y = 28 , cursor_c = -1;
+    struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
     //	int *test;
     //	test = memman_alloc_4k(memman, 10000000 );
     queue8_init(&task->queue, 128, queuebuf, task);
@@ -318,27 +320,38 @@ void console_task (struct SHEET* sheet)
                         cursor_x -= 8;
                     }
                 } else if (i == 10 + 256){
-                        putfonts8_asc_sht(sheet, cursor_x, cursor_y, find_palette(0xffffff), find_palette(0), " ", 1);
-                    if ( cursor_y < 28 + 112 ) {
-                        cursor_y += 16;
-                    } else {
-                        int x,y;
-                        for ( y = 28; y < 28 + 112 ; y ++ ) 
-                            for ( x = 8 ; x < 8 + 240 ; x ++ ) 
-                                sheet->buf[x + y * sheet->bxsize] = sheet->buf[x + (y + 16) * sheet->bxsize]; 
-
-                        for ( y = 28 + 112; y < 28 + 128 ; y ++ )
-                            for ( x = 8 ; x < 8 + 240 ; x ++ ) 
+                    putfonts8_asc_sht(sheet, cursor_x, cursor_y, find_palette(0xffffff), find_palette(0), " ", 1);
+                    /*cmdline*/
+                    cmdline[cursor_x / 8 -2] = 0;
+                    cursor_y = cons_newline(cursor_y, sheet);
+                    if ( ( strcmp (cmdline, "cls") == 0 ) || ( strcmp (cmdline, "clear") == 0 ) ) {
+                        int x, y;
+                        for ( y = 28 ; y < 28 + 128 ; y ++ )
+                            for ( x = 8 ; x < 8 + 240 ; x ++ )
                                 sheet->buf[x + y * sheet->bxsize] = find_palette(0);
-                        sheet_refresh(sheet, 8 , 28, 8 + 240, 28 + 128 );
+                        sheet_refresh(sheet, 8 , 28 , 8 + 240 , 28 + 128 );
+                        cursor_y = 28;
+                    } else if (strcmp (cmdline, "mem") == 0 ) {
+                        sprintf(s, "total %dMB", memtotal / (1024 * 1024) );
+                        putfonts8_asc_sht (sheet, 8, cursor_y, find_palette(0xffffff), find_palette(0), s, 30);
+                        cursor_y = cons_newline(cursor_y, sheet);
+                        sprintf(s, "free %dKB", memman_total (memman) / 1024 );
+                        putfonts8_asc_sht (sheet, 8, cursor_y, find_palette(0xffffff), find_palette(0), s, 30);
+                        cursor_y = cons_newline(cursor_y, sheet);
+                        cursor_y = cons_newline(cursor_y, sheet);
+                    } else if ( cmdline[0] != 0 ){
+                        putfonts8_asc_sht (sheet, 8, cursor_y, find_palette(0xffffff), find_palette(0), "Bad command", 12 );
+                        cursor_y = cons_newline(cursor_y, sheet);
+                        cursor_y = cons_newline(cursor_y, sheet);
                     }
                     putfonts8_asc_sht(sheet, 8, cursor_y, find_palette(0xffffff), find_palette(0), ">", 1);
                     cursor_x = 16;
-                    
+
                 } else {
                     if ( cursor_x < 240 ) {
                         s[0] = i - 256;
                         s[1] = 0;
+                        cmdline[cursor_x / 8 - 2] = i - 256;
                         putfonts8_asc_sht(sheet, cursor_x, cursor_y, find_palette(0xffffff), find_palette(0), s, 1);	
                         cursor_x += 8;
                     }
@@ -351,4 +364,22 @@ void console_task (struct SHEET* sheet)
             sheet_refresh(sheet, cursor_x, cursor_y, cursor_x+8, cursor_y+16);
         }
     }
+}
+
+int cons_newline (int cursor_y, struct SHEET* sheet)
+{
+    if ( cursor_y < 28 + 112 ) {
+        cursor_y += 16;
+    } else {
+        int x,y;
+        for ( y = 28; y < 28 + 112 ; y ++ ) 
+            for ( x = 8 ; x < 8 + 240 ; x ++ ) 
+                sheet->buf[x + y * sheet->bxsize] = sheet->buf[x + (y + 16) * sheet->bxsize]; 
+
+        for ( y = 28 + 112; y < 28 + 128 ; y ++ )
+            for ( x = 8 ; x < 8 + 240 ; x ++ ) 
+                sheet->buf[x + y * sheet->bxsize] = find_palette(0);
+        sheet_refresh(sheet, 8 , 28, 8 + 240, 28 + 128 );
+    }
+    return cursor_y;
 }

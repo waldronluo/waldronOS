@@ -261,3 +261,7 @@ void task_remove(struct TASK *task);
 void task_run (struct TASK *task, int level, int priority);
 void task_switch (void);
 void task_sleep (struct TASK *task);
+
+
+/* bootpack.c */
+int cons_newline (int cursor_y, struct SHEET* sheet);
