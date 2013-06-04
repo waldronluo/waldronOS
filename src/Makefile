@@ -72,6 +72,7 @@ waldronos.img : ipl10.bin waldronos.sys Makefile
 		copy from:Makefile to:@: \
 		copy from:bootpack.c to:@: \
 		copy from:hankaku.txt to:@: \
+		copy from:note.md to:@: \
 		imgout:waldronos.img
 
 img : 

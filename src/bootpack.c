@@ -126,10 +126,10 @@ void HariMain(void)
 
     /* console */
     sht_cons = sheet_alloc(shtctl);
-    buf_cons = (unsigned char *) memman_alloc_4k(memman, 256 * 165);
-    sheet_setbuf (sht_cons, buf_cons, 256, 165, -1);
-    make_window8 (buf_cons, 256, 165, "console", 0);
-    make_textbox8(sht_cons, 8, 28, 240, 128, find_palette(0));
+    buf_cons = (unsigned char *) memman_alloc_4k(memman, 500 * 500);
+    sheet_setbuf (sht_cons, buf_cons, 500, 500, -1);
+    make_window8 (buf_cons, 500, 500, "console", 0);
+    make_textbox8(sht_cons, 8, 28, 500 - 16, 500 - 37, find_palette(0));
     task_cons = task_alloc();
     task_cons->tss.esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024 - 8;
     task_cons->tss.eip = (int) &console_task;
@@ -335,10 +335,10 @@ void console_task (struct SHEET* sheet, unsigned int memtotal)
                         cursor_y = cons_newline (cursor_y, sheet);
                     } else if ( ( strcmp (cmdline, "cls") == 0 ) || ( strcmp (cmdline, "clear") == 0 ) ) {
                         int x, y;
-                        for ( y = 28 ; y < 28 + 128 ; y ++ )
-                            for ( x = 8 ; x < 8 + 240 ; x ++ )
+                        for ( y = 28 ; y < 28 + 16 * 29 ; y ++ )
+                            for ( x = 8 ; x < 8 + 500 - 16 ; x ++ )
                                 sheet->buf[x + y * sheet->bxsize] = find_palette(0);
-                        sheet_refresh(sheet, 8 , 28 , 8 + 240 , 28 + 128 );
+                        sheet_refresh(sheet, 8 , 28 , 8 + 500 - 16 , 28 + 500 - 53 );
                         cursor_y = 28;
                     } else if (strcmp (cmdline, "mem") == 0 ) {
                         sprintf(s, "total %dMB", memtotal / (1024 * 1024) );
@@ -348,7 +348,57 @@ void console_task (struct SHEET* sheet, unsigned int memtotal)
                         putfonts8_asc_sht (sheet, 8, cursor_y, find_palette(0xffffff), find_palette(0), s, 30);
                         cursor_y = cons_newline(cursor_y, sheet);
                         cursor_y = cons_newline(cursor_y, sheet);
-                    } else if ((strcmp (cmdline, "type ") == 0) || (strcmp (cmdline, "cat ") == 0)) {
+                    } else if ( (strncmp (cmdline, "cat ", 4) == 0)) {
+                        int x,y;
+                        for (y = 0;y < 11; y ++ )
+                            s[y] = ' ';
+
+                        y = 0;
+                        for (x = 4; y < 11 && cmdline[x] != 0; x ++ ) {
+                            if (cmdline[x] == '.' && y <= 8 ) {
+                                y = 8;
+                            } else {
+                                s[y] = cmdline[x];
+                                if ( 'a' <= s[y] && s[y] <= 'z' )
+                                    s[y] -= 0x20;
+                                
+                                y++;
+                            }
+                        }
+
+                        for (x = 0; x < 224 ; ) {
+                            if (finfo[x].name[0] == 0x00)
+                                break;
+                            if ((finfo[x].type & 0x18) == 0) {
+                                for (y = 0;y < 11; y ++ ) {
+                                    if (finfo[x].name[y] != s[y] )
+                                        goto type_next_file;
+                                }
+                                break;
+                            }
+type_next_file:
+                            x++;
+                        }
+
+                        if ( x < 224 && finfo[x].name[0] != 0x00 ) {
+                            y = finfo[x].size;
+                            p = (char *) (finfo[x].clustno * 512 + 0x003e00 + ADR_DISKIMG);
+                            cursor_x = 8;
+                            for (x=0 ; x < y ; x ++ ) {
+                                s[0] = p[x];
+                                s[1] = 0;
+                                putfonts8_asc_sht(sheet, cursor_x, cursor_y, find_palette(0xffffff), find_palette(0), s, 1);
+                                cursor_x += 8;
+                                if ( cursor_x >= 500 - 8 ) {
+                                    cursor_x = 8;
+                                    cursor_y = cons_newline(cursor_y, sheet);
+                                }                                    
+                            }
+                        } else {
+                            putfonts8_asc_sht (sheet, 8, cursor_y, find_palette(0xffffff), find_palette(0), "File Not Found", 15 );
+                            cursor_y = cons_newline(cursor_y, sheet);
+                        }
+                        cursor_y = cons_newline(cursor_y, sheet);
 
 
                     } else if ( cmdline[0] != 0 ){
@@ -359,7 +409,7 @@ void console_task (struct SHEET* sheet, unsigned int memtotal)
                     putfonts8_asc_sht(sheet, 8, cursor_y, find_palette(0xffffff), find_palette(0), ">", 1);
                     cursor_x = 16;
                 } else {
-                    if ( cursor_x < 240 ) {
+                    if ( cursor_x < 500 - 24 ) {
                         s[0] = i - 256;
                         s[1] = 0;
                         cmdline[cursor_x / 8 - 2] = i - 256;
@@ -380,18 +430,18 @@ void console_task (struct SHEET* sheet, unsigned int memtotal)
 
 int cons_newline (int cursor_y, struct SHEET* sheet)
 {
-    if ( cursor_y < 28 + 112 ) {
+    if ( cursor_y < 28 + 16 * 28 ) {
         cursor_y += 16;
     } else {
         int x,y;
-        for ( y = 28; y < 28 + 112 ; y ++ ) 
-            for ( x = 8 ; x < 8 + 240 ; x ++ ) 
+        for ( y = 28; y <= 28 + 16 * 28 ; y ++ ) 
+            for ( x = 8 ; x < 500 - 16; x ++ ) 
                 sheet->buf[x + y * sheet->bxsize] = sheet->buf[x + (y + 16) * sheet->bxsize]; 
 
-        for ( y = 28 + 112; y < 28 + 128 ; y ++ )
-            for ( x = 8 ; x < 8 + 240 ; x ++ ) 
+        for ( y = 28 + 16 * 28; y <= 28 + 16 * 29; y ++ )
+            for ( x = 8 ; x < 500 - 16; x ++ ) 
                 sheet->buf[x + y * sheet->bxsize] = find_palette(0);
-        sheet_refresh(sheet, 8 , 28, 8 + 240, 28 + 128 );
+        sheet_refresh(sheet, 8 , 28, 500 - 8, 28 + 16 * 29 );
     }
     return cursor_y;
 }
