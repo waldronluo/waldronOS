@@ -1,3 +1,7 @@
+
+#define STOP while(1)io_hlt();
+
+
 /*precompile*/
 struct TASK;
 
@@ -9,6 +13,8 @@ struct BOOTINFO {
  	char* vram;
 };
 #define ADR_BOOTINFO 0x00000ff0
+#define ADR_DISKIMG 0x00100000
+
 
 /*dsctbl.c*/
 #define ADR_IDT 0x0026f800
@@ -265,3 +271,11 @@ void task_sleep (struct TASK *task);
 
 /* bootpack.c */
 int cons_newline (int cursor_y, struct SHEET* sheet);
+
+/* file */
+struct FILEINFO {
+    unsigned char name[8], ext[3], type;
+    char reserve[10];
+    unsigned short time, date, clustno;
+    unsigned int size;
+};

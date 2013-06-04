@@ -69,6 +69,9 @@ waldronos.img : ipl10.bin waldronos.sys Makefile
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
 		copy from:waldronos.sys to:@: \
+		copy from:Makefile to:@: \
+		copy from:bootpack.c to:@: \
+		copy from:hankaku.txt to:@: \
 		imgout:waldronos.img
 
 img : 

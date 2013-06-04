@@ -154,7 +154,7 @@ void HariMain(void)
             io_sti();
         }	
         else {
-            i = queue8_get (&inputData) ;
+            i = queue8_get (&inputData) & 0xffff;
             io_sti();
             if ( (i == 0 || i == 1) ) {
                 if ( i == 1 ) {
@@ -175,9 +175,6 @@ void HariMain(void)
             if ( i >= KEYDATA0 && i < MOUSEDATA0 ) {
                 /*keypat*/
                 i -= KEYDATA0;
-                //sprintf(s , "%02x" , i );
-                //putfonts8_asc_sht ( sht_back, 0, 16, find_palette(0xffffff), find_palette(0x8484), s, 2 );
-
                 if ( i < 0x80 ) {
                     if ( key_shift == 0 ) s[0] = keytable0[i];
                     if ( key_shift == 1 ) s[0] = keytable1[i];
@@ -205,13 +202,13 @@ void HariMain(void)
                 if ( i == 0x36 ) key_shift |= 2;
                 if ( i == 0xaa ) key_shift &= ~1;
                 if ( i == 0xb6 ) key_shift &= ~2;
-                if ( i == 0x0e && cursor_x > 8 ) {
+                if ( i == 0x0e ) {
                     /*backspace*/
-                    if ( key_to == 0 ) {
+                    if ( key_to == 0 && cursor_x > 8) {
                         putfonts8_asc_sht(sht_win, cursor_x, 28, find_palette(0), find_palette(0xffffff), " ", 1 );
                         cursor_x -= 8;
                     } else {
-                        queue8_put(&task_cons->queue, 8 + 256 );
+                        queue8_put(&task_cons->queue, 8 + 256);
                     }
                 }
                 if ( i == 0x0f ) {
@@ -243,22 +240,12 @@ void HariMain(void)
             if ( i >= MOUSEDATA0 ) {
                 i -= MOUSEDATA0  ;
                 if ( mouse_decode (&mdec,i) == 1 ){
-                //    sprintf ( s , "[lcr %d %d]", mdec.x , mdec.y );
-                //    if ( (mdec.btn & 0x01 ) != 0 ) s[1] = 'L';
-                //    if ( (mdec.btn & 0x02 ) != 0 ) s[3] = 'R';
-                //    if ( (mdec.btn & 0x04 ) != 0 ) s[2] = 'C';
-                //    putfonts8_asc_sht ( sht_back, 32, 16, find_palette(0xffffff), find_palette(0x8484), s  , 15	);
                     mx += mdec.x;
                     my += mdec.y;
                     if ( mx < 0 ) mx = 0;
                     if ( my < 0 ) my = 0;
                     if ( mx > binfo->scrnx - 1 ) mx = binfo->scrnx - 1;
                     if ( my > binfo->scrny - 1 ) my = binfo->scrny - 1;
-                //    sprintf ( s, "(%3d, %3d)", mx,my );
-                //    boxfill8 ( buf_back, binfo->scrnx, find_palette(0x00008484), 0, 0, 79, 15 );
-                //    putfonts8_asc( buf_back, binfo->scrnx, 0 , 0 , find_palette(0x00ffffff), s );
-                //    sheet_refresh( sht_back, 0, 0, 80, 16 );
-                //    putfonts8_asc_sht ( sht_back, 0, 0, find_palette(0xffffff), find_palette(0x8484) , s , 10 );
                     sheet_slide (  sht_mouse, mx, my );
                     if ( (mdec.btn & 0x01) != 0 ) {
                         sheet_slide ( sht_win, mx-80, my-8 );
@@ -274,8 +261,9 @@ void console_task (struct SHEET* sheet, unsigned int memtotal)
     //	struct Queue8 queue;
     struct TIMER *timer;
     struct TASK *task = task_now();
+    struct FILEINFO *finfo = (struct FILEINFO *) (ADR_DISKIMG + 0x002600);
     //	int array[10000];	
-    char s[30], cmdline[30];
+    char s[30], cmdline[30], *p;
     int i, queuebuf[128], cursor_x = 16, cursor_y = 28 , cursor_c = -1;
     struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
     //	int *test;
@@ -293,7 +281,7 @@ void console_task (struct SHEET* sheet, unsigned int memtotal)
             io_sti();
         } else {
             i = queue8_get (&task->queue);
-            io_sti();	
+            io_sti();
             if (i <= 1) {
                 if ( i != 0 ) {
                     timer_init(timer, &task->queue, 0);
@@ -306,25 +294,46 @@ void console_task (struct SHEET* sheet, unsigned int memtotal)
                 }
                 timer_settimer(timer, 50);
             }
-            if ( i == 2 )
+            if ( i == 2 ) {
                 cursor_c = find_palette(0xffffff);
-            if ( i == 3 ){
+            }
+            if ( i == 3 ) {
                 boxfill8(sheet->buf, sheet->bxsize, find_palette(0), cursor_x, 28, cursor_x + 7, 43);
                 cursor_c = -1;
-                //    while (1) io_hlt();
             }
-            if (i >= 256 && i <= 511 ){
+            if (i >= 256 && i <= 511 ) {
                 if (i == 8 + 256) {
                     if (cursor_x > 16) {
                         putfonts8_asc_sht (sheet, cursor_x, cursor_y, find_palette(0xffffff), find_palette(0), " ", 1 );
                         cursor_x -= 8;
+                        putfonts8_asc_sht (sheet, cursor_x, cursor_y, find_palette(0xffffff), find_palette(0), " ", 1 );
                     }
                 } else if (i == 10 + 256){
                     putfonts8_asc_sht(sheet, cursor_x, cursor_y, find_palette(0xffffff), find_palette(0), " ", 1);
                     /*cmdline*/
-                    cmdline[cursor_x / 8 -2] = 0;
+                    cmdline[cursor_x / 8 - 2] = 0;
                     cursor_y = cons_newline(cursor_y, sheet);
-                    if ( ( strcmp (cmdline, "cls") == 0 ) || ( strcmp (cmdline, "clear") == 0 ) ) {
+                    if ( (strcmp (cmdline, "dir") == 0) || (strcmp (cmdline, "ls") == 0) ) {
+                        int x,y;
+                        for ( x = 0 ; x < 224 ; x ++ ) {
+                            if (finfo[x].name[0] == 0x00 )
+                                break;
+                            if (finfo[x].name[0] != 0xe5 ) {
+                                if ((finfo[x].type & 0x18) == 0) {
+                                    sprintf(s, "filename.ext    %7d", finfo[x].size);
+                                    for (y = 0;y < 8;y ++) {
+                                        s[y] = finfo[x].name[y];
+                                    }
+                                    s[9]  = finfo[x].ext[0];
+                                    s[10] = finfo[x].ext[1];
+                                    s[11] = finfo[x].ext[2];
+                                    putfonts8_asc_sht (sheet, 8, cursor_y, find_palette(0xffffff), find_palette(0), s, 30);
+                                    cursor_y = cons_newline(cursor_y, sheet);
+                                }
+                            }
+                        }
+                        cursor_y = cons_newline (cursor_y, sheet);
+                    } else if ( ( strcmp (cmdline, "cls") == 0 ) || ( strcmp (cmdline, "clear") == 0 ) ) {
                         int x, y;
                         for ( y = 28 ; y < 28 + 128 ; y ++ )
                             for ( x = 8 ; x < 8 + 240 ; x ++ )
@@ -339,6 +348,9 @@ void console_task (struct SHEET* sheet, unsigned int memtotal)
                         putfonts8_asc_sht (sheet, 8, cursor_y, find_palette(0xffffff), find_palette(0), s, 30);
                         cursor_y = cons_newline(cursor_y, sheet);
                         cursor_y = cons_newline(cursor_y, sheet);
+                    } else if ((strcmp (cmdline, "type ") == 0) || (strcmp (cmdline, "cat ") == 0)) {
+
+
                     } else if ( cmdline[0] != 0 ){
                         putfonts8_asc_sht (sheet, 8, cursor_y, find_palette(0xffffff), find_palette(0), "Bad command", 12 );
                         cursor_y = cons_newline(cursor_y, sheet);
@@ -346,7 +358,6 @@ void console_task (struct SHEET* sheet, unsigned int memtotal)
                     }
                     putfonts8_asc_sht(sheet, 8, cursor_y, find_palette(0xffffff), find_palette(0), ">", 1);
                     cursor_x = 16;
-
                 } else {
                     if ( cursor_x < 240 ) {
                         s[0] = i - 256;
@@ -354,12 +365,13 @@ void console_task (struct SHEET* sheet, unsigned int memtotal)
                         cmdline[cursor_x / 8 - 2] = i - 256;
                         putfonts8_asc_sht(sheet, cursor_x, cursor_y, find_palette(0xffffff), find_palette(0), s, 1);	
                         cursor_x += 8;
+
                     }
                 }
             }
-            if ( cursor_c >= 0 ){
-                boxfill8(sheet->buf, sheet->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43 );
-                sheet_refresh(sheet, cursor_x, cursor_y, cursor_x + 8, 44);
+            if ( cursor_c != -1 ) {
+                boxfill8(sheet->buf, sheet->bxsize, cursor_c, cursor_x, cursor_y, cursor_x + 7, cursor_y + 16 );
+                sheet_refresh(sheet, cursor_x, cursor_y, cursor_x + 8, cursor_y + 16 );
             }
             sheet_refresh(sheet, cursor_x, cursor_y, cursor_x+8, cursor_y+16);
         }
