@@ -272,10 +272,16 @@ void task_sleep (struct TASK *task);
 /* bootpack.c */
 int cons_newline (int cursor_y, struct SHEET* sheet);
 
-/* file */
+/* file.c */
 struct FILEINFO {
     unsigned char name[8], ext[3], type;
     char reserve[10];
     unsigned short time, date, clustno;
     unsigned int size;
 };
+void file_readfat (int *fat, unsigned char *img);
+void file_loadfile (int clustno, int size, char *buf, int *fat, char *img);
+
+/* console.c */
+void console_task (struct SHEET* sheet, unsigned int memtotal);
+int cons_newline (int cussor_y, struct SHEET* sheet);
