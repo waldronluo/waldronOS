@@ -269,9 +269,6 @@ void task_switch (void);
 void task_sleep (struct TASK *task);
 
 
-/* bootpack.c */
-int cons_newline (int cursor_y, struct SHEET* sheet);
-
 /* file.c */
 struct FILEINFO {
     unsigned char name[8], ext[3], type;
@@ -289,11 +286,11 @@ struct CONSOLE {
     int cur_x, cur_y, cur_c;
 };
 void console_task (struct SHEET* sheet, unsigned int memtotal);
-int cons_newline (int cussor_y, struct SHEET* sheet);
+void cons_newline (struct CONSOLE* cons);
 void cons_putchar (struct CONSOLE* cons, int chr, char move);
 void cons_runcmd (char* cmdline, struct CONSOLE* cons, int *fat, unsigned int memtotal);
-void cons_mem (struct CONSOLE *cons, unsigned int memtotal);
+void cmd_mem (struct CONSOLE *cons, unsigned int memtotal);
 void cmd_cls (struct CONSOLE *cons);
-void cmd_dir (struct CONSOLE *cons);
+void cmd_ls (struct CONSOLE *cons);
 void cmd_cat (struct CONSOLE *cons, int *fat, char *cmdline);
 void cmd_hlt (struct CONSOLE *cons, int *fat);
