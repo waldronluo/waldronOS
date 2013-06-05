@@ -96,44 +96,13 @@ void console_task (struct SHEET* sheet, unsigned int memtotal)
                         cursor_y = cons_newline(cursor_y, sheet);
                         cursor_y = cons_newline(cursor_y, sheet);
                     } else if ( (strncmp (cmdline, "cat ", 4) == 0)) {
-                        int x,y;
-                        for (y = 0;y < 11; y ++ )
-                            s[y] = ' ';
-
-                        y = 0;
-                        for (x = 4; y < 11 && cmdline[x] != 0; x ++ ) {
-                            if (cmdline[x] == '.' && y <= 8 ) {
-                                y = 8;
-                            } else {
-                                s[y] = cmdline[x];
-                                if ( 'a' <= s[y] && s[y] <= 'z' )
-                                    s[y] -= 0x20;
-                                
-                                y++;
-                            }
-                        }
-
-                        for (x = 0; x < 224 ; ) {
-                            if (finfo[x].name[0] == 0x00)
-                                break;
-                            if ((finfo[x].type & 0x18) == 0) {
-                                for (y = 0;y < 11; y ++ ) {
-                                    if (finfo[x].name[y] != s[y] )
-                                        goto type_next_file;
-                                }
-                                break;
-                            }
-type_next_file:
-                            x++;
-                        }
-
-                        if ( x < 224 && finfo[x].name[0] != 0x00 ) {
-                            p = (char *) memman_alloc_4k(memman, finfo[x].size);
-                            file_loadfile (finfo[x].clustno, finfo[x].size, p, fat, (char*) ADR_DISKIMG + 0x003e00);
-                    //        y = finfo[x].size;
-                    //        p = (char *) (finfo[x].clustno * 512 + 0x003e00 + ADR_DISKIMG);
+                        int y;
+                        struct FILEINFO *file = file_search ( &cmdline[4], finfo, 224);
+                        if ( file != 0x00 ) {
+                            p = (char *) memman_alloc_4k(memman, file->size);
+                            file_loadfile (file->clustno, file->size, p, fat, (char*) ADR_DISKIMG + 0x003e00);
                             cursor_x = 8;
-                            for (y = 0;y < finfo[x].size; y ++ ) {
+                            for (y = 0;y < file->size; y ++ ) {
                                 s[0] = p[y];
                                 s[1] = 0;
                                 if ( s[0] == 0x09 ) {
@@ -161,32 +130,17 @@ type_next_file:
                                     }       
                                 }
                             }
-                            memman_free_4k (memman, (int) p, finfo[x].size);
+                            memman_free_4k (memman, (int) p, file->size);
                         } 
                     } else if ( strcmp(cmdline, "hlt") == 0 ) {
-                        int x,y;
-                        for (y = 0; y < 11 ; y ++ ) s[y] = ' '; 
-                        s[0] = 'H', s[1] = 'L', s[2] = 'T', s[8] = 'W', s[9] = 'A', s[10] = 'L';
-                        for (x = 0; x < 224 ; ) {
-                            if (finfo[x].name[0] == 0x00 ) break;
-                            
-                            if ((finfo[x].type & 0x18) == 0) {
-                                for (y = 0;y < 11; y ++ ) {
-                                    if (finfo[x].name[y] != s[y]) {
-                                        goto hlt_next_file;
-                                    }
-                                }
-                                break;
-                            }
-hlt_next_file:
-                            x ++;
-                        }
-                        if (x < 224 && finfo[x].name[0] != 0x00) {
-                            p = (char *)memman_alloc_4k (memman, finfo[x].size);
-                            file_loadfile(finfo[x].clustno, finfo[x].size, p, fat, (char *) (ADR_DISKIMG + 0x003e00));
-                            set_segmdesc (gdt + 1003, finfo[x].size - 1, (int)p, AR_CODE32_ER);
+                        struct FILEINFO *file;
+                        file = file_search ("hlt.wal", finfo, 224);
+                        if (file !=0x00) {
+                            p = (char *)memman_alloc_4k (memman, file->size);
+                            file_loadfile(file->clustno, file->size, p, fat, (char *) (ADR_DISKIMG + 0x003e00));
+                            set_segmdesc (gdt + 1003, file->size - 1, (int)p, AR_CODE32_ER);
                             farjmp (0, 1003 * 8 );
-                            memman_free_4k(memman, (int) p, finfo[x].size);
+                            memman_free_4k(memman, (int) p, file->size);
                         } else {
                             putfonts8_asc_sht(sheet, 8, cursor_y, find_palette(0xffffff), find_palette(0), "FILE NOT FOUND", 15 );
                             cursor_y = cons_newline(cursor_y, sheet);
@@ -219,6 +173,12 @@ hlt_next_file:
             sheet_refresh(sheet, cursor_x, cursor_y, cursor_x+8, cursor_y+16);
         }
     }
+}
+
+
+void cons_putchar (struct CONSOLE *cons, int chr, char move)
+{
+    
 }
 
 int cons_newline (int cursor_y, struct SHEET* sheet)

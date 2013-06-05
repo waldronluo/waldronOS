@@ -29,3 +29,40 @@ void file_loadfile (int clustno, int size, char *buf, int *fat, char *img)
     }
     return;
 }
+
+struct FILEINFO *file_search (char *name, struct FILEINFO *finfo, int max)
+{
+    char s[30];
+    int x,y;
+    for (y = 0;y < 11; y ++ )
+        s[y] = ' ';
+
+    y = 0;
+    for (x = 0; name[x] != 0  ; x ++ ) {
+        if ( y >= 11 ) return 0;/* failed */
+        if (name[x] == '.' && y <= 8) {
+            y = 8;
+        } else {
+            s[y] = name[x];
+            if ( 'a' <= s[y] && s[y] <= 'z' )
+                s[y] -= 0x20;
+            y++; 
+        }
+    }
+
+    for (x = 0; x < max ; ) {
+        if (finfo[x].name[0] == 0x00) break;
+
+        if ((finfo[x].type & 0x18) == 0) {
+            for (y = 0;y < 11; y ++) {
+                if (finfo[x].name[y] != s[y] ) goto next_file;
+            }
+            break;
+        }
+next_file:
+        x ++;
+    }
+    if ( x<max && finfo[x].name[0] != 0x00 ) return &finfo[x];
+    else return 0;    
+}
+
