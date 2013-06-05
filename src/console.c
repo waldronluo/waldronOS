@@ -3,19 +3,18 @@
 #include <stdio.h>
 void console_task (struct SHEET* sheet, unsigned int memtotal)
 {
-    //	struct Queue8 queue;
     struct TIMER *timer;
     struct TASK *task = task_now();
     struct FILEINFO *finfo = (struct FILEINFO *) (ADR_DISKIMG + 0x002600);
-    //	int array[10000];	
     char s[30], cmdline[30], *p;
     int i, queuebuf[128], cursor_x = 16, cursor_y = 28 , cursor_c = -1;
     struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
+    /*wal need*/
+    struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) ADR_GDT;
     /*fat*/
     int *fat = (int *)memman_alloc_4k (memman, 4 * 2880 );
     file_readfat(fat, (unsigned char *) (ADR_DISKIMG + 0x000200));
-    //	int *test;
-    //	test = memman_alloc_4k(memman, 10000000 );
+
     queue8_init(&task->queue, 128, queuebuf, task);
     timer = timer_alloc();
     timer_init (timer, &task->queue, 1);
@@ -163,10 +162,35 @@ type_next_file:
                                 }
                             }
                             memman_free_4k (memman, (int) p, finfo[x].size);
-                        } else {
-                            putfonts8_asc_sht (sheet, 8, cursor_y, find_palette(0xffffff), find_palette(0), "File Not Found", 15 );
-                            cursor_y = cons_newline(cursor_y, sheet);
+                        } 
+                    } else if ( strcmp(cmdline, "hlt") == 0 ) {
+                        int x,y;
+                        for (y = 0; y < 11 ; y ++ ) s[y] = ' '; 
+                        s[0] = 'H', s[1] = 'L', s[2] = 'T', s[8] = 'W', s[9] = 'A', s[10] = 'L';
+                        for (x = 0; x < 224 ; ) {
+                            if (finfo[x].name[0] == 0x00 ) break;
+                            
+                            if ((finfo[x].type & 0x18) == 0) {
+                                for (y = 0;y < 11; y ++ ) {
+                                    if (finfo[x].name[y] != s[y]) {
+                                        goto hlt_next_file;
+                                    }
+                                }
+                                break;
+                            }
+hlt_next_file:
+                            x ++;
                         }
+                        if (x < 224 && finfo[x].name[0] != 0x00) {
+                            p = (char *)memman_alloc_4k (memman, finfo[x].size);
+                            file_loadfile(finfo[x].clustno, finfo[x].size, p, fat, (char *) (ADR_DISKIMG + 0x003e00));
+                            set_segmdesc (gdt + 1003, finfo[x].size - 1, (int)p, AR_CODE32_ER);
+                            farjmp (0, 1003 * 8 );
+                            memman_free_4k(memman, (int) p, finfo[x].size);
+                        } else {
+                            putfonts8_asc_sht(sheet, 8, cursor_y, find_palette(0xffffff), find_palette(0), "FILE NOT FOUND", 15 );
+                            cursor_y = cons_newline(cursor_y, sheet);
+                        }    
                         cursor_y = cons_newline(cursor_y, sheet);
 
 
@@ -174,7 +198,7 @@ type_next_file:
                         putfonts8_asc_sht (sheet, 8, cursor_y, find_palette(0xffffff), find_palette(0), "Bad command", 12 );
                         cursor_y = cons_newline(cursor_y, sheet);
                         cursor_y = cons_newline(cursor_y, sheet);
-                    }
+                    } 
                     putfonts8_asc_sht(sheet, 8, cursor_y, find_palette(0xffffff), find_palette(0), ">", 1);
                     cursor_x = 16;
                 } else {
@@ -196,7 +220,6 @@ type_next_file:
         }
     }
 }
-
 
 int cons_newline (int cursor_y, struct SHEET* sheet)
 {

@@ -283,5 +283,9 @@ void file_readfat (int *fat, unsigned char *img);
 void file_loadfile (int clustno, int size, char *buf, int *fat, char *img);
 
 /* console.c */
+struct CONSOLE {
+    struct SHEET *sht;
+    int cur_x, cur_y, cur_c;
+};
 void console_task (struct SHEET* sheet, unsigned int memtotal);
 int cons_newline (int cussor_y, struct SHEET* sheet);
