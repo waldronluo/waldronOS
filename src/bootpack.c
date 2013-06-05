@@ -387,12 +387,30 @@ type_next_file:
                             for (x=0 ; x < y ; x ++ ) {
                                 s[0] = p[x];
                                 s[1] = 0;
-                                putfonts8_asc_sht(sheet, cursor_x, cursor_y, find_palette(0xffffff), find_palette(0), s, 1);
-                                cursor_x += 8;
-                                if ( cursor_x >= 500 - 8 ) {
+                                if ( s[0] == 0x09 ) {
+                                    while (1) {
+                                        putfonts8_asc_sht (sheet, cursor_x, cursor_y, find_palette(0xffffff), find_palette(0), " ", 1);
+                                        cursor_x += 8;
+                                        if ( cursor_x >= 500 - 8 ) {
+                                            cursor_x = 8;
+                                            cursor_y = cons_newline(cursor_y, sheet);
+                                        }
+                                        if (((cursor_x - 8) & 0x1f) == 0) {
+                                            break;
+                                        }
+                                    }
+                                } else if (s[0] == 0x0a) {
                                     cursor_x = 8;
-                                    cursor_y = cons_newline(cursor_y, sheet);
-                                }                                    
+                                    cursor_y = cons_newline (cursor_y, sheet);
+                                } else if (s[0] == 0x0d) {
+                                } else {
+                                    putfonts8_asc_sht(sheet, cursor_x, cursor_y, find_palette(0xffffff), find_palette(0), s, 1);
+                                    cursor_x += 8;
+                                    if ( cursor_x >= 500 - 8 ) {
+                                        cursor_x = 8;
+                                        cursor_y = cons_newline(cursor_y, sheet);
+                                    }       
+                                }
                             }
                         } else {
                             putfonts8_asc_sht (sheet, 8, cursor_y, find_palette(0xffffff), find_palette(0), "File Not Found", 15 );
