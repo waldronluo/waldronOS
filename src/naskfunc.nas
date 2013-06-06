@@ -13,11 +13,14 @@
 	GLOBAL _io_out8, _io_out16, _io_out32
 	GLOBAL _io_load_eflags, _io_store_eflags
 	GLOBAL _load_gdtr, _load_idtr
-	EXTERN _inthandler21,_inthandler27, _inthandler2c, _inthandler20
 	GLOBAL _asm_inthandler21,_asm_inthandler27,_asm_inthandler2c,_asm_inthandler20
 	GLOBAL _memtest_sub
 	GLOBAL _load_cr0, _store_cr0
 	GLOBAL _load_tr,  _farjmp
+    GLOBAL _asm_cons_putchar
+    GLOBAL _farcall
+	EXTERN _inthandler21,_inthandler27, _inthandler2c, _inthandler20
+    EXTERN _cons_putchar
 [SECTION .text]
 
 _io_hlt:
@@ -215,3 +218,21 @@ _load_tr:
 _farjmp:
 	JMP FAR [ESP+4]
 	RET
+
+_asm_cons_putchar:
+    STI
+    PUSHAD
+    PUSH 1
+    AND EAX,0xff
+    PUSH EAX
+    PUSH DWORD [0x0fec]
+    CALL _cons_putchar
+    ADD ESP,12
+    POPAD
+    IRETD
+
+_farcall:
+    CALL FAR [ESP+4]
+    RET
+
+

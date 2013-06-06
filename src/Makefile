@@ -95,6 +95,7 @@ clean :
 	-$(DEL) *.lst
 	-$(DEL) *.gas
 	-$(DEL) *.obj
+	-$(DEL) *.wal
 	-$(DEL) graphic.nas
 	-$(DEL) int.nas
 	-$(DEL) memory.nas
