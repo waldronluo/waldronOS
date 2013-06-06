@@ -19,8 +19,9 @@
 	GLOBAL _load_tr,  _farjmp
     GLOBAL _asm_cons_putchar
     GLOBAL _farcall
+    GLOBAL _asm_wal_api
 	EXTERN _inthandler21,_inthandler27, _inthandler2c, _inthandler20
-    EXTERN _cons_putchar
+    EXTERN _cons_putchar, _wal_api
 [SECTION .text]
 
 _io_hlt:
@@ -235,4 +236,12 @@ _farcall:
     CALL FAR [ESP+4]
     RET
 
+_asm_wal_api:
+    STI
+    PUSHAD
 
+    PUSHAD
+    CALL _wal_api
+    ADD ESP,32
+    POPAD
+    IRETD
