@@ -25,6 +25,13 @@ default :
 	-$(MAKE) run -slient 
 	$(MAKE) clean -s
 
+bug1.bim : bug1.obj a_nask.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:bug1.bim map:bug1.map bug1.obj a_nask.obj
+
+bug1.hrb : bug1.bim Makefile
+	$(BIM2HRB) bug1.bim bug1.hrb 0
+
+
 hankaku.c: hankaku.txt Makefile
 	python $(DIYPATH)fontmaker.py 
 
@@ -66,7 +73,7 @@ bootpack.hrb : bootpack.bim Makefile
 waldronos.sys : asmhead.bin bootpack.hrb Makefile
 	cat  asmhead.bin bootpack.hrb > waldronos.sys
 
-waldronos.img : ipl10.bin waldronos.sys Makefile
+waldronos.img : ipl10.bin waldronos.sys bug1.hrb Makefile
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
 		copy from:waldronos.sys to:@: \
@@ -74,6 +81,7 @@ waldronos.img : ipl10.bin waldronos.sys Makefile
 		copy from:bootpack.c to:@: \
 		copy from:hankaku.txt to:@: \
 		copy from:note.md to:@: \
+		copy from:bug1.hrb to:@: \
 		imgout:waldronos.img
 
 img : 

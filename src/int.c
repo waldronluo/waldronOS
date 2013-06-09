@@ -51,6 +51,20 @@ int inthandler0d (int *esp)
 {
     struct CONSOLE *cons = (struct CONSOLE *) *((int *) 0x0fec);
     struct TASK *task = task_now();
+    char s[30];
+    sprintf (s, "\nEIP = %08X\n", esp[11]);
+    cons_putstr0(cons, s);
     cons_putstr0(cons, "\nINT 0D :\n general Protected Exception.\n");
+    return (int)&(task->tss.esp0);
+}
+
+int inthandler0c (int *esp)
+{
+    struct CONSOLE *cons = (struct CONSOLE *) *((int *) 0x0fec);
+    struct TASK *task = task_now();
+    char s[30];
+    sprintf (s, "\nEIP = %08X\n", esp[11]);
+    cons_putstr0(cons, s);
+    cons_putstr0(cons, "\nINT 0C :\n Stack Exception.\n");
     return (int)&(task->tss.esp0);
 }

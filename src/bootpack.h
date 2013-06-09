@@ -59,6 +59,7 @@ void farcall (int eip, int cs);
 void io_out8 ( int port , int data );
 int io_load_eflags (void);
 void io_store_eflags ( int eflags );
+void asm_inthandler0c (void);
 void asm_inthandler0d (void);
 void asm_inthandler20 (void);
 void asm_inthandler21 (void);
@@ -89,6 +90,9 @@ int store_cr0(int cr0);
 #define MOUSEDATA0 768
 
 void init_pic(void);
+int inthandler0c ( int* esp );
+int inthandler0d ( int* esp );
+void inthandler20 ( int* esp );
 void inthandler21 ( int* esp );
 void inthandler27 ( int* esp );
 void inthandler2c ( int* esp );
