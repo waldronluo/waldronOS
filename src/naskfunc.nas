@@ -278,7 +278,7 @@ _asm_wal_api:
     POP ES
     POP DS
     IRETD
-end_app
+end_app:
     MOV ESP,[EAX]
     POPAD
     RET

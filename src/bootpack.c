@@ -60,11 +60,9 @@ void HariMain(void)
     /*TSS*/
     struct TASK *task_a, *task_cons;// *task_b[3];
 
-
     init_gdtidt();
     init_pic();
     io_sti();
-
     /*queue.c*/
     queue8_init( &inputData , 128, inputBuf, 0 );
 
