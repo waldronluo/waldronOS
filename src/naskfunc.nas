@@ -13,14 +13,19 @@
 	GLOBAL _io_out8, _io_out16, _io_out32
 	GLOBAL _io_load_eflags, _io_store_eflags
 	GLOBAL _load_gdtr, _load_idtr
-	GLOBAL _asm_inthandler21,_asm_inthandler27,_asm_inthandler2c,_asm_inthandler20
+	GLOBAL _asm_inthandler21,_asm_inthandler27
+    GLOBAL _asm_inthandler2c,_asm_inthandler20
+    GLOBAL _asm_inthandler0d
 	GLOBAL _memtest_sub
 	GLOBAL _load_cr0, _store_cr0
 	GLOBAL _load_tr,  _farjmp
     GLOBAL _asm_cons_putchar
     GLOBAL _farcall
     GLOBAL _asm_wal_api
-	EXTERN _inthandler21,_inthandler27, _inthandler2c, _inthandler20
+    GLOBAL _start_app
+	EXTERN _inthandler21,_inthandler27 
+    EXTERN _inthandler2c, _inthandler20
+	EXTERN _inthandler0d
     EXTERN _cons_putchar, _wal_api
 [SECTION .text]
 
@@ -157,17 +162,37 @@ _asm_inthandler20:
 	PUSH ES
 	PUSH DS
 	PUSHAD
-	MOV EAX, ESP
-	PUSH EAX
-	MOV AX,SS
-	MOV DS,AX
-	MOV ES,AX
-	CALL _inthandler20
-	POP EAX
-	POPAD
-	POP DS
-	POP ES
-	IRETD
+    MOV EAX,ESP
+    PUSH EAX
+    MOV AX,SS
+    MOV DS,AX
+    MOV ES,AX
+    CALL _inthandler20
+    POP EAX
+    POPAD
+    POP DS
+    POP ES
+    IRETD
+
+_asm_inthandler0d:
+    STI
+	PUSH ES
+	PUSH DS
+	PUSHAD
+    MOV EAX,ESP
+    PUSH EAX
+    MOV AX,SS
+    MOV DS,AX
+    MOV ES,AX
+    CALL _inthandler0d
+    CMP EAX,0
+    JNE end_app
+    POP EAX
+    POPAD
+    POP DS
+    POP ES
+    ADD ESP,4
+    IRETD
 
 _memtest_sub:
 	PUSH EDI
@@ -238,10 +263,62 @@ _farcall:
 
 _asm_wal_api:
     STI
+    PUSH DS
+    PUSH ES
     PUSHAD
-
     PUSHAD
+    MOV AX,SS
+    MOV DS,AX
+    MOV ES,AX
     CALL _wal_api
+    CMP EAX,0
+    JNE end_app
     ADD ESP,32
     POPAD
+    POP ES
+    POP DS
     IRETD
+end_app
+    MOV ESP,[EAX]
+    POPAD
+    RET
+
+_start_app: ;void start_app(int eip, int cs, int esp, int ds);
+    PUSHAD
+    MOV EAX,[ESP+36]
+    MOV ECX,[ESP+40]
+    MOV EDX,[ESP+44]
+    MOV EBX,[ESP+48]
+    MOV EBP,[ESP+52]
+    MOV [EBP],ESP
+    MOV [EBP+4],SS
+
+    MOV ES,BX
+    MOV DS,BX
+    MOV FS,BX
+    MOV GS,BX
+
+    OR ECX,3
+    OR EBX,3
+    PUSH EBX
+    PUSH EDX
+    PUSH ECX
+    PUSH EAX
+    RETF
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

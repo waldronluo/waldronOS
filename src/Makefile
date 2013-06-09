@@ -25,12 +25,6 @@ default :
 	-$(MAKE) run -slient 
 	$(MAKE) clean -s
 
-hlt.wal : hlt.nas Makefile
-	$(NASK) hlt.nas hlt.wal hlt.lst
-
-helloa.wal : hlt.nas Makefile
-	$(NASK) helloa.nas helloa.wal helloa.lst
-
 hankaku.c: hankaku.txt Makefile
 	python $(DIYPATH)fontmaker.py 
 
@@ -72,7 +66,7 @@ bootpack.hrb : bootpack.bim Makefile
 waldronos.sys : asmhead.bin bootpack.hrb Makefile
 	cat  asmhead.bin bootpack.hrb > waldronos.sys
 
-waldronos.img : ipl10.bin waldronos.sys hlt.wal helloa.wal Makefile
+waldronos.img : ipl10.bin waldronos.sys Makefile
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
 		copy from:waldronos.sys to:@: \
@@ -80,8 +74,6 @@ waldronos.img : ipl10.bin waldronos.sys hlt.wal helloa.wal Makefile
 		copy from:bootpack.c to:@: \
 		copy from:hankaku.txt to:@: \
 		copy from:note.md to:@: \
-		copy from:hlt.wal to:@: \
-		copy from:helloa.wal to:@: \
 		imgout:waldronos.img
 
 img : 
@@ -99,6 +91,9 @@ clean :
 	-$(DEL) *.gas
 	-$(DEL) *.obj
 	-$(DEL) *.wal
+	-$(DEL) *.bim
+	-$(DEL) *.map
+	-$(DEL) *.hrb
 	-$(DEL) graphic.nas
 	-$(DEL) int.nas
 	-$(DEL) memory.nas
