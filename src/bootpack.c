@@ -38,7 +38,7 @@ void HariMain(void)
     struct BOOTINFO* binfo = (struct BOOTINFO *)0x0ff0;
     char s[40];	
     unsigned int i;
-    int  key_to = 0, key_shift = 0, key_leds = (binfo->leds >> 4) & 7;
+    int  key_to = 0, key_shift = 0, key_ctrl = 0, key_leds = (binfo->leds >> 4) & 7;
     int mx, my;
     unsigned int memtotal;
 
@@ -50,7 +50,9 @@ void HariMain(void)
 
     /*timer.c*/
     struct TIMER *timer;
-    /*end of timer.c*/
+
+    /*console.c*/
+    struct CONSOLE *cons;
 
     /*keyboard.c*/
     int cursor_x, cursor_c;
@@ -171,7 +173,10 @@ void HariMain(void)
             if ( i >= KEYDATA0 && i < MOUSEDATA0 ) {
                 /*keypat*/
                 i -= KEYDATA0;
-                if ( i < 0x80 ) {
+                sprintf (s, "%02x", i);
+                putfonts8_asc_sht (sht_back, 0, 16, find_palette(0xffffff), find_palette(0), s, 2);
+                /*normal input*/
+                if ( i < 0x80 && key_ctrl == 0 ) {
                     if ( key_shift == 0 ) s[0] = keytable0[i];
                     if ( key_shift == 1 ) s[0] = keytable1[i];
                 } else { s[0] = 0; }
@@ -190,10 +195,21 @@ void HariMain(void)
                         queue8_put(&task_cons->queue, s[0] + 256 );
                     }
                 }
+                if ( i == 0x2e && key_ctrl == 1 && task_cons->tss.ss0 != 0 ) {
+                    putfonts8_asc_sht (sht_back, 0, 16, find_palette(0xffffff), find_palette(0), "in!", 3);
+                    cons = (struct CONSOLE *) *((int *) 0xfec);
+                    cons_putstr0 (cons, "\nInterrupt!!!\n");
+                    io_cli();
+                    task_cons->tss.eax = (int) &(task_cons->tss.esp0);
+                    task_cons->tss.eip = (int) &asm_end_app;
+                    io_sti();
+                }
                 if ( i == 0x3a ) {
                     if ((key_leds & 4) != 0) key_leds &= (~4);
                     else key_leds |= (4);
                 }
+                if ( i == 0x1d ) key_ctrl |= 1;
+                if ( i == 0x9d ) key_ctrl &= ~1;
                 if ( i == 0x2a ) key_shift |= 1;
                 if ( i == 0x36 ) key_shift |= 2;
                 if ( i == 0xaa ) key_shift &= ~1;

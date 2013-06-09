@@ -21,7 +21,7 @@
 	GLOBAL _load_tr,  _farjmp
     GLOBAL _asm_cons_putchar
     GLOBAL _farcall
-    GLOBAL _asm_wal_api
+    GLOBAL _asm_wal_api, _asm_end_app
     GLOBAL _start_app
 	EXTERN _inthandler21, _inthandler27 
     EXTERN _inthandler2c, _inthandler20
@@ -326,7 +326,11 @@ _start_app: ;void start_app(int eip, int cs, int esp, int ds);
     PUSH EAX
     RETF
 
-
+_asm_end_app:
+    MOV ESP,[EAX]
+    MOV DWORD [EAX+4],0
+    POPAD
+    RET
 
 
 
