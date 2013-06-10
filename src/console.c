@@ -218,8 +218,8 @@ void cmd_cat (struct CONSOLE *cons, int *fat, char *cmdline)
         cons_putstr0(cons, "File Not Found.\n");
     }
     return;
-
 }
+
 int cmd_app (struct CONSOLE *cons, int *fat, char *cmdline)
 {
     struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
@@ -228,6 +228,7 @@ int cmd_app (struct CONSOLE *cons, int *fat, char *cmdline)
     struct TASK *task = task_now();
     char name[18], *p, *q;
     int i;
+    int segsiz, datsiz, esp, dathrb;
 
     for (i = 0;i < 13; i ++ ) {
         if (cmdline[i] <= ' ') break;
@@ -255,21 +256,26 @@ int cmd_app (struct CONSOLE *cons, int *fat, char *cmdline)
     
     if ( finfo != 0 ) {
         p = (char *)memman_alloc_4k(memman, finfo->size);
-        q = (char *)memman_alloc_4k(memman, 64 * 1024);
-        *((int *)0xfe8) = (int) p;
+//        q = (char *)memman_alloc_4k(memman, 64 * 1024);
+//        *((int *)0xfe8) = (int) p;
         file_loadfile (finfo->clustno, finfo->size, p, fat, (char *) (ADR_DISKIMG + 0x3e00));
-        set_segmdesc (gdt + 1003, finfo->size - 1, (int) p, AR_CODE32_ER + 0x60);
-        set_segmdesc (gdt + 1004, 64 * 1024 - 1, (int) q, AR_DATA32_RW + 0x60);
-        if  (finfo->size >= 8 && strncmp(p + 4, "Hari", 4) == 0 ) {
-    //        p[0] = 0xe8, p[1] = 0x16, p[2] = 0x00, p[3] = 0x00, p[4] = 0x00, p[5] = 0xcb;
-            start_app (0x1b, 1003 * 8, 64 * 1024, 1004 * 8, &(task->tss.esp0));
+        if (finfo->size >= 36 && strncmp(p + 4, "Hari", 4 ) == 0 && *p == 0x00) {
+           segsiz = *((int *) (p + 0x0000));
+           esp    = *((int *) (p + 0x000c));
+           datsiz = *((int *) (p + 0x0010));
+           dathrb = *((int *) (p + 0x0014));
+           q = (char *) memman_alloc_4k (memman, segsiz);
+           *((int *) 0xfe8) = (int) q;
+           set_segmdesc(gdt + 1003, finfo->size - 1, (int) p, AR_CODE32_ER + 0x60);
+           set_segmdesc(gdt + 1004, segsiz - 1, (int) q, AR_DATA32_RW + 0x60);
+           for (i = 0;i < datsiz; i ++)
+               q[esp+i] = p[dathrb + i];
+           start_app(0x1b, 1003 * 8, esp, 1004 * 8, &(task->tss.esp0));
+           memman_free_4k(memman, (int) q, segsiz);
         } else {
-            start_app (0, 1003 * 8, 64 * 1024, 1004 * 8, &(task->tss.esp0));
+            cons_putstr0 (cons, "\n.hrb file format error.\n");
         }
-//        farcall(0, 1003 * 8);
-        //start_app (0, 1003 * 8, 64 * 1024, 1004 * 8, &(task->tss.esp0));
-        memman_free_4k(memman, (int)p, finfo->size);
-        memman_free_4k(memman, (int)q, 64 * 1024);
+        memman_free_4k (memman, (int) p, finfo->size);
         cons_newline(cons);
         return 1;
     }
