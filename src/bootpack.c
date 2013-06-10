@@ -143,6 +143,9 @@ void HariMain(void)
 
     sheet_slide(sht_cons, 32, 4);
     sheet_updown(sht_cons, 1);
+
+    /* for static variable */
+    *((int *) 0xfe4) = (int) shtctl;
     /* The OS */
     for ( ;; )
     {	
