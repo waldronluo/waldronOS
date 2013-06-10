@@ -25,6 +25,12 @@ default :
 	-$(MAKE) run -slient 
 	$(MAKE) clean -s
 
+helloa.bim : helloa.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:helloa.bim stack:1k map:helloa.map helloa.obj
+
+helloa.hrb : helloa.bim Makefile
+	$(BIM2HRB) helloa.bim helloa.hrb 0
+
 bug1.bim : bug1.obj a_nask.obj Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:bug1.bim map:bug1.map bug1.obj a_nask.obj
 
@@ -38,7 +44,7 @@ bug2.hrb : bug2.bim Makefile
 	$(BIM2HRB) bug2.bim bug2.hrb 0
 
 hello.bim : hello.obj a_nask.obj Makefile
-	$(OBJ2BIM) @$(RULEFILE) out:hello.bim map:hello.map hello.obj a_nask.obj
+	$(OBJ2BIM) @$(RULEFILE) out:hello.bim stack:1k map:hello.map hello.obj a_nask.obj
 
 hello.hrb : hello.bim Makefile
 	$(BIM2HRB) hello.bim hello.hrb 0
@@ -84,7 +90,7 @@ bootpack.hrb : bootpack.bim Makefile
 waldronos.sys : asmhead.bin bootpack.hrb Makefile
 	cat  asmhead.bin bootpack.hrb > waldronos.sys
 
-waldronos.img : ipl10.bin waldronos.sys bug1.hrb bug2.hrb hello.hrb  Makefile
+waldronos.img : ipl10.bin waldronos.sys bug1.hrb bug2.hrb hello.hrb helloa.hrb Makefile
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
 		copy from:waldronos.sys to:@: \
@@ -95,6 +101,7 @@ waldronos.img : ipl10.bin waldronos.sys bug1.hrb bug2.hrb hello.hrb  Makefile
 		copy from:bug1.hrb to:@: \
 		copy from:bug2.hrb to:@: \
 		copy from:hello.hrb to:@: \
+		copy from:helloa.hrb to:@: \
 		imgout:waldronos.img
 
 img : 
