@@ -47,7 +47,7 @@ winhelo.bim : winhelo.obj a_nask.obj Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:winhelo.bim stack:1k map:winhelo.map winhelo.obj a_nask.obj
 
 winhelo.hrb : winhelo.bim Makefile
-	$(BIM2HRB) winhelo.bim winhelo.hrb 0
+	$(BIM2HRB) winhelo.bim winhelo.hrb 40K
 
 hello.bim : hello.obj a_nask.obj Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:hello.bim stack:1k map:hello.map hello.obj a_nask.obj
