@@ -146,14 +146,16 @@ void cons_runcmd (char *cmdline, struct CONSOLE *cons, int *fat, unsigned int me
         cmd_cls(cons);
     else if ((strcmp(cmdline, "dir") == 0) || (strcmp(cmdline, "ls") == 0))
         cmd_ls(cons);
-    else if ((strncmp(cmdline, "type ", 5) == 0) || (strncmp(cmdline, "cat ", 4) == 0))
+    else if ((strncmp(cmdline, "type ", 5) == 0) || (strncmp(cmdline, "cat ", 4) == 0)) {
         cmd_cat(cons, fat, cmdline);
+        if (cons->cur_x > 8 )
+            cons_newline(cons);
+    }
     //else if (strcmp(cmdline, "hlt") == 0)
     //    cmd_hlt(cons, fat);
     else if (cmdline[0] != 0) {
         if (cmd_app(cons, fat, cmdline) == 0) {
             putfonts8_asc_sht(cons->sht, 8, cons->cur_y, find_palette(0xffffff), find_palette(0), "BAD COMMAND", 12);
-            cons_newline(cons);
         }
     }
     return ;
@@ -319,17 +321,31 @@ int wal_api (int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
         sht = sheet_alloc (shtctl);
         sheet_setbuf (sht, (char *)ebx + ds_base, esi, edi, eax);
         make_window8 ((char *) ebx + ds_base, esi, edi, (char *)ecx + ds_base, 0);
-        sheet_slide (sht, 100, 50);
+        sheet_slide (sht, 200, 200);
         sheet_updown (sht, 3);
         reg[7] = (int) sht;
-    } else if ( edx == 6 ) {
+    } else if ( edx == 6 ) { /*api_putstrwin */
         sht = (struct SHEET *)ebx;
         putfonts8_asc (sht->buf, sht->bxsize, esi, edi, eax, (char *) ebp + ds_base );
         sheet_refresh (sht, esi, edi, esi + ecx * 8, edi + 16 );
-    } else if ( edx == 7 ) {
+    } else if ( edx == 7 ) { /*api_boxfilwin */
         sht = (struct SHEET *) ebx;
         boxfill8 (sht->buf, sht->bxsize, ebp, eax, ecx, esi, edi);
         sheet_refresh (sht, eax, ecx, esi + 1, edi + 1);
+    } else if ( edx == 8 ) { /*init memman*/
+        memman_init ((struct MEMMAN *) (ebx + ds_base));
+        ecx &= 0xfffffff0;
+        memman_free ((struct MEMMAN *) (ebx + ds_base), eax, ecx);
+    } else if ( edx == 9 ) {/*malloc*/
+        ecx = (ecx + 0x0f) & 0xfffffff0;
+        reg[7] = memman_alloc ((struct MEMMAN *) (ebx + ds_base), ecx);
+    } else if ( edx == 10) {/*free*/
+        ecx = (ecx + 0x0f) & 0xfffffff0 ;
+        memman_free ((struct MEMMAN *) (ebx + ds_base), eax, ecx);
+    } else if ( edx == 11 ) {
+        sht = (struct SHEET *) ebx;
+        sht->buf[sht->bxsize * edi + esi] = eax;
+        sheet_refresh(sht, esi, edi, esi + 1, edi + 1);
     }
     return 0;
 }
