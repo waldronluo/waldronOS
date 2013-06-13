@@ -16,6 +16,7 @@
     GLOBAL _api_refreshwin ;void api_refreshwin(int win, int x0, int y0, int x1, int y1)
     GLOBAL _api_linewin
     GLOBAL _api_closewin
+    GLOBAL _api_getkey
 [SECTION .text]
 
 _api_putstr0:
@@ -177,4 +178,10 @@ _api_closewin: ;void api_closewin (int win);
     MOV EBX,[ESP+8]
     INT 0x40
     POP EBX
+    RET
+
+_api_getkey:
+    MOV EDX,15
+    MOV EAX,[ESP+4]
+    INT 0x40
     RET

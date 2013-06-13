@@ -45,7 +45,8 @@ struct SHEET* sheet_alloc ( struct SHTCTL* ctl )
 		{
 			sht = &ctl -> sheets0[i];
 			sht->flags |= SHEET_USE;
-			sht->height = -1;
+	 		sht->height = -1;
+            sht->task = 0;
 			return sht;
 		}
 	}
@@ -130,7 +131,6 @@ void sheet_slide (  struct SHEET *sht, int vx0, int vy0 )
 
 void sheet_free ( struct SHEET* sht )
 {
-//	struct SHTCTL *ctl = sht->ctl;
 	if ( sht->height >= 0 )
 		sheet_updown (  sht, -1 );
 	sht->flags = 0;

@@ -134,7 +134,6 @@ void cons_newline (struct CONSOLE* cons)
             for ( x = 8 ; x < 500 - 16 ; x ++ )
                 sheet->buf[x + y * sheet->bxsize] = find_palette(0);
         sheet_refresh(sheet, 8, 28, 500 - 8, 28 + 16 * 29 );
-        //STOP;
     }
     cons->cur_x = 8;
 }
@@ -228,6 +227,8 @@ int cmd_app (struct CONSOLE *cons, int *fat, char *cmdline)
     struct FILEINFO *finfo;
     struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) ADR_GDT;
     struct TASK *task = task_now();
+    struct SHTCTL *shtctl;
+    struct SHEET *sht;
     char name[18], *p, *q;
     int i;
     int segsiz, datsiz, esp, dathrb;
@@ -258,8 +259,6 @@ int cmd_app (struct CONSOLE *cons, int *fat, char *cmdline)
     
     if ( finfo != 0 ) {
         p = (char *)memman_alloc_4k(memman, finfo->size);
-//        q = (char *)memman_alloc_4k(memman, 64 * 1024);
-//        *((int *)0xfe8) = (int) p;
         file_loadfile (finfo->clustno, finfo->size, p, fat, (char *) (ADR_DISKIMG + 0x3e00));
         if (finfo->size >= 36 && strncmp(p + 4, "Hari", 4 ) == 0 && *p == 0x00) {
            segsiz = *((int *) (p + 0x0000));
@@ -273,6 +272,13 @@ int cmd_app (struct CONSOLE *cons, int *fat, char *cmdline)
            for (i = 0;i < datsiz; i ++)
                q[esp+i] = p[dathrb + i];
            start_app(0x1b, 1003 * 8, esp, 1004 * 8, &(task->tss.esp0));
+           shtctl = (struct SHTCTL *) *((int *)0xfe4);
+           for (i = 0;i < MAX_SHEETS;i ++) {
+               sht = &(shtctl->sheets0[i]);
+               if ((sht->flags & 0x11) == 0x11 && sht->task == task) {
+                    sheet_free (sht);
+               }
+           }
            memman_free_4k(memman, (int) q, segsiz);
         } else {
             cons_putstr0 (cons, "\n.hrb file format error.\n");
@@ -319,6 +325,8 @@ int wal_api (int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
         return (int)&(task->tss.esp0);
     else if (edx == 5) {
         sht = sheet_alloc (shtctl);
+        sht->task = task;
+        sht->flags |= 0x10;
         sheet_setbuf (sht, (char *)ebx + ds_base, esi, edi, eax);
         make_window8 ((char *) ebx + ds_base, esi, edi, (char *)ecx + ds_base, 0);
         sheet_slide (sht, 200, 200);
@@ -359,6 +367,41 @@ int wal_api (int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
             sheet_refresh (sht, eax, ecx, esi + 1, edi + 1);
     } else if ( edx == 14) {
         sheet_free ((struct SHEET *) ebx);
+    } else if ( edx == 15) {
+        int i;
+        for (;;) {
+            io_cli();
+            if (queue8_status(&task->queue) == 0) {
+                if (eax != 0) {
+                    task_sleep(task);
+                } else {
+                    io_sti();
+                    reg[7] = -1;
+                    return 0;
+                }
+            }
+            i = queue8_get(&task->queue);
+            io_sti();
+            if (i <= 1) {
+                timer_init (cons->timer, &task->queue, 1);
+                timer_settimer (cons->timer, 50);
+            }
+            if (i == 2) {
+                cons->cur_c = find_palette(0xffffff);
+            }
+            if (i == 3) {
+                cons->cur_c = -1;
+            }
+            if (256 <= i && i <= 511) {
+                //cons_putstr0 (cons, "helloaaaabbb\n");
+                //if (i == 256 + 0x57 && shtctl->top > 2) {
+                  //  cons_putstr0 (cons, "helloaaaa\n");
+                    //sheet_updown(shtctl->sheets[1], shtctl->top - 1);
+                //}
+                reg[7] = i - 256;
+                return 0;
+            }
+        }
     }
     return 0;
 }

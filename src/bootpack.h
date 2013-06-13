@@ -169,6 +169,7 @@ int memman_free_4k ( struct MEMMAN* man , unsigned int addr , unsigned int size 
 #define MAX_SHEETS 256
 #define SHEET_USE 1
 struct SHEET {
+    struct TASK *task;
 	struct SHTCTL* ctl;
 	unsigned char* buf;
 	int bxsize, bysize, vx0, vy0, col_inv, height, flags ;
@@ -234,6 +235,7 @@ void init_mouse_curosr8( char* mouse , char bc );
 void make_window8 ( unsigned char* buf, int xsize, int ysize, char *title, char act );
 void make_textbox8 ( struct SHEET* sht, int x0, int y0, int sx, int sy, int c );
 void make_wtitle8(unsigned char *buf, int xsize, char *title, char act);
+void change_wtitle (struct SHEET *sht, char act);
 
 /*mtask.c*/
 #define MAX_TASKS 1000
@@ -294,6 +296,7 @@ struct FILEINFO *file_search (char *name, struct FILEINFO *finfo, int max);
 struct CONSOLE {
     struct SHEET *sht;
     int cur_x, cur_y, cur_c;
+    struct TIMER *timer;
 };
 void console_task (struct SHEET* sheet, unsigned int memtotal);
 void cons_newline (struct CONSOLE* cons);
@@ -308,3 +311,9 @@ void cons_putstr0 (struct CONSOLE *cons, char *s);
 void cons_putstr1 (struct CONSOLE *cons, char *s, int length);
 int wal_api (int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int eax);
 void wal_api_linewin (struct SHEET* sht, int x0, int y0, int x1, int y1, int col);
+
+
+
+/* bootpack.c */
+int keywin_off (struct SHEET *key_win, struct SHEET *sht_win, int cur_c, int cur_x);
+int keywin_on (struct SHEET *key_win, struct SHEET *sht_win, int cur_c);
