@@ -1,46 +1,44 @@
-int rand(void);
 
+
+#include <stdio.h>
 
 int api_openwin (char *buf, int xsiz, int ysiz, int col_inv, char *title);
 void api_putstrwin (int win, int x, int y, int col, int len, char *str);
-void api_boxfilwin (int win, int x0, int y0, int x1, int y1, int col );
+void api_boxfilwin (int win, int x0, int y0, int x1, int y1, int col);
 void api_initmalloc (void);
-void api_point (int win, int x, int y, int col);
 char* api_malloc (int size);
-void api_refreshwin (int win, int x0, int y0, int x1, int y1);
-void api_end();
-void api_linewin (int win, int x0, int y0, int x1, int y1, int col);
-void api_closewin (int win);
 int api_getkey (int mode);
-//char buf[150 * 50];
-void HariMain (void)
-{
-    char *buf;
-    int win;
-    int i,x,y;
+int api_alloctimer (void);
+void api_inittimer (int timer, int data);
+void api_settimer (int timer, int time);
+void api_end (void);
+
+void HariMain (void) {
+    char *buf, s[12];
+    int win, timer, sec = 0, min = 0, hou = 0;
     api_initmalloc();
-    buf = api_malloc (160 * 100);
-    //while (1);
-    win = api_openwin (buf, 160, 100, -1, "star");
-    api_boxfilwin(win, 4, 24, 155, 95, 0);
-    x = 76;
-    y = 56;
-    api_putstrwin (win, x, y, 3, 1, "*");
-    for (i = 0;i < 50; i ++ ) {
-        api_linewin (win, (rand() % 137) + 6, 88, 26 ,(rand() % 67) + 26, (i%8)+1);
-    //    api_linewin (win, 6, 88, 26 ,7, 3);
-    }
-    api_refreshwin (win, 6, 26, 144, 94);
+    buf = api_malloc (150 * 50);
+    win = api_openwin (buf, 150, 50, -1, "noodle");
+    timer = api_alloctimer ();
+    api_inittimer (timer, 128);
     for (;;) {
-        i = api_getkey(1) ;
-        api_putstrwin (win, x, y, 0, 1, "*");
-        if (i == '4' && x > 4 ) x-= 8;
-        if (i == '6' && x < 148 ) x+= 8;
-        if (i == '8' && x > 24 ) y-= 8;
-        if (i == '2' && x < 80 ) y+= 8;
-    //    if (i == 0x0a) break;
-        api_putstrwin (win, x, y, 3, 1,  "*");
+        sprintf (s, "%05d:%02d:%02d",hou,min,sec);
+        api_boxfilwin (win, 28,27,115,41,7);
+        api_putstrwin (win, 28,27,0,11,s);
+
+        api_settimer (timer, 100);
+        if (api_getkey(1) != 128)
+            break;
+        sec ++;
+        if (sec == 60) {
+            sec = 0;
+            min ++;
+            if (min == 60) {
+                min = 0;
+                hou ++;
+            }
+        }
     }
-    //api_closewin(win);
     api_end();
+
 }

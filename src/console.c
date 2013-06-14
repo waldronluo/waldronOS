@@ -154,7 +154,8 @@ void cons_runcmd (char *cmdline, struct CONSOLE *cons, int *fat, unsigned int me
     //    cmd_hlt(cons, fat);
     else if (cmdline[0] != 0) {
         if (cmd_app(cons, fat, cmdline) == 0) {
-            putfonts8_asc_sht(cons->sht, 8, cons->cur_y, find_palette(0xffffff), find_palette(0), "BAD COMMAND", 12);
+            //putfonts8_asc_sht(cons->sht, 8, cons->cur_y, find_palette(0xffffff), find_palette(0), "BAD COMMAND", 12);
+            cons_putstr0 (cons, ">BAD COMMAND\n");
         }
     }
     return ;
@@ -279,6 +280,7 @@ int cmd_app (struct CONSOLE *cons, int *fat, char *cmdline)
                     sheet_free (sht);
                }
            }
+           timer_cancelall (&task->queue);
            memman_free_4k(memman, (int) q, segsiz);
         } else {
             cons_putstr0 (cons, "\n.hrb file format error.\n");
@@ -307,6 +309,7 @@ void cons_putstr1 (struct CONSOLE *cons, char *s, int l)
 
 int wal_api (int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int eax)
 {
+    //char s[25];
     int ds_base = *((int *) 0xfe8);
 
     struct TASK *task = task_now();
@@ -381,6 +384,8 @@ int wal_api (int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
                 }
             }
             i = queue8_get(&task->queue);
+            //sprintf(s, "%d in GETKEY\n", i);
+            //cons_putstr0(cons,s);
             io_sti();
             if (i <= 1) {
                 timer_init (cons->timer, &task->queue, 1);
@@ -392,17 +397,28 @@ int wal_api (int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
             if (i == 3) {
                 cons->cur_c = -1;
             }
-            if (256 <= i && i <= 511) {
-                //cons_putstr0 (cons, "helloaaaabbb\n");
-                //if (i == 256 + 0x57 && shtctl->top > 2) {
-                  //  cons_putstr0 (cons, "helloaaaa\n");
-                    //sheet_updown(shtctl->sheets[1], shtctl->top - 1);
-                //}
+            if (256 <= i) {
                 reg[7] = i - 256;
                 return 0;
             }
         }
+    } else if ( edx == 16) {
+        //cons_putstr0(cons, "TIMER ALLOC\n");
+        reg[7] = (int) timer_alloc();
+        ((struct TIMER *) reg[7])->flags2 = 1;
+    } else if ( edx == 17) {
+        //sprintf (s, "TIMER INIT FOR %d\n", eax + 256);
+        //cons_putstr0(cons, s);
+        timer_init ((struct TIMER *) ebx, &task->queue, eax + 256);
+    } else if ( edx == 18) {
+        //sprintf (s, "TIMER SET FOR %d TIME\n", eax);
+        //cons_putstr0(cons, s);
+        timer_settimer ((struct TIMER *) ebx, eax);
+    } else if ( edx == 19) {
+        //cons_putstr0(cons, "TIMER FREE\n");
+        timer_free ((struct TIMER *) ebx);
     }
+
     return 0;
 }
 
@@ -427,7 +443,7 @@ void wal_api_linewin (struct SHEET* sht, int x0, int y0, int x1, int y1, int col
         dy = (y0 > y1) ? -1024 : 1024;
         dy = (x0 <= x1) ? ((x1 - x0 + 1) << 10)/len : ((x1 - x0 - 1) << 10)/len ;
     }
-    
+
     for (i = 0;i < len;i ++) {
         sht->buf[(y >> 10) * sht->bxsize + (x >> 10)] = col;
         x += dx;

@@ -203,7 +203,8 @@ void sheet_refreshmap ( struct SHTCTL* ctl, int vx0, int vy0, int vx1, int vy1, 
 
 struct TIMER {
 	struct TIMER *next;
-	unsigned int timeout, flags;
+	unsigned int timeout;
+    char flags,flags2;
 	struct Queue8 *queue;
 	unsigned int data;
 };
@@ -219,6 +220,8 @@ struct TIMER *timer_alloc ( void );
 void timer_free (struct TIMER *timer);
 void timer_init ( struct TIMER *timer, struct Queue8 *queue, unsigned int data );
 void timer_settimer ( struct TIMER *timer, unsigned int timeout );
+int timer_cancel (struct TIMER *timer);
+void timer_cancelall (struct Queue8 *queue);
 
 /*graphic.h*/
 void boxfill8(unsigned char* vram, int xsize, unsigned char c, int x0, int y0, int x1 , int y1 );

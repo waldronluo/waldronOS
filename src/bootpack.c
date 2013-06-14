@@ -246,6 +246,7 @@ void HariMain(void)
                         j = shtctl->top - 1;
                     key_win = shtctl->sheets[j];
                     cursor_c = keywin_on (key_win, sht_win, cursor_c);
+                    sheet_updown (key_win, shtctl->top - 1);
 
                 }
                 if ( i == 0x1c ) {
